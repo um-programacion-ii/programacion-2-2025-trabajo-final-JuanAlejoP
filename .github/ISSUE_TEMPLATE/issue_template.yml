@@ -1,7 +1,7 @@
 name: Plantilla de issue
 description: Usar para describir tareas o funcionalidades a implementar
 title: "Implementación de la clase Libro"
-labels: ["enhancement"]
+labels: [""]
 assignees:
   - JuanAlejoP
 
