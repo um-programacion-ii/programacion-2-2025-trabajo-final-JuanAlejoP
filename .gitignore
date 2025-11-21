@@ -26,3 +26,6 @@ build/
 ### Archivos temporales y de log ###
 *.log
 *.tmp
+
+# JWT (Archivo txt para guardar tokens)
+jwt
