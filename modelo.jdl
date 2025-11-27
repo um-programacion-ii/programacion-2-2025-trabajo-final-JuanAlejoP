@@ -1,0 +1,47 @@
+// Definición del Modelo de Datos para el Trabajo Final
+
+entity Evento {
+    // ID original del sistema de la cátedra (para sincronizar)
+    idCatedra Long required unique,
+
+    // Datos informativos del evento
+    titulo String required,
+    resumen String,
+    descripcion String,
+    fechaHora ZonedDateTime required,
+    direccion String,
+    imagenUrl String,
+    precio Double required
+}
+
+entity Venta {
+    fecha ZonedDateTime required,
+    total Double required,
+
+    // ID que nos devuelve la cátedra al confirmar la venta (puede ser null si quedó pendiente)
+    idVentaCatedra Long
+
+    // Estado interno para manejar reintentos (ej. PENDIENTE, CONFIRMADA, FALLIDA)
+    estado String required
+}
+
+entity Ticket {
+    // Representa cada asiento vendido dentro de una venta
+    fila Integer required,
+    columna Integer required,
+    nombrePersona String required // Nombre y Apellido cargado por el usuario
+}
+
+// Relaciones entre las tablas
+relationship OneToMany {
+    // Un evento tiene muchas ventas asociadas
+    Evento to Venta{evento(titulo)}
+
+    // Una venta tiene muchos tickets (asientos)
+    Venta to Ticket{venta}
+}
+
+// Configuraciones extra de JHipster
+dto * with mapstruct        // Generar DTOs automáticamente
+service * with serviceClass // Generar Servicios (Service Class)
+paginate Evento, Venta with pagination // Paginación para listados largos

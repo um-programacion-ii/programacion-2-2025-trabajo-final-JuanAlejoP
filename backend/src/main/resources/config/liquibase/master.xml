@@ -19,7 +19,12 @@
     <property name="timeType" value="time(6)" dbms="mysql"/>
 
     <include file="config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251127205341_added_entity_Evento.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251127205342_added_entity_Venta.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251127205343_added_entity_Ticket.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
+    <include file="config/liquibase/changelog/20251127205342_added_entity_constraints_Venta.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251127205343_added_entity_constraints_Ticket.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>
