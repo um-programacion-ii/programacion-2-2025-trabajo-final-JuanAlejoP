@@ -105,6 +105,17 @@ public class EventoDTO implements Serializable {
         this.precio = precio;
     }
 
+    // Campo transitorio (no se guarda en BD local, viene del Proxy)
+    private java.util.List<com.juanalejop.backend.service.dto.proxy.AsientoProxyDto> asientos;
+
+    public java.util.List<com.juanalejop.backend.service.dto.proxy.AsientoProxyDto> getAsientos() {
+        return asientos;
+    }
+
+    public void setAsientos(java.util.List<com.juanalejop.backend.service.dto.proxy.AsientoProxyDto> asientos) {
+        this.asientos = asientos;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

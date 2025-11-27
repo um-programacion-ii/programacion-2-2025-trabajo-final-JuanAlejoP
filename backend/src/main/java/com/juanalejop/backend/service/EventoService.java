@@ -25,9 +25,14 @@ public class EventoService {
 
     private final EventoMapper eventoMapper;
 
-    public EventoService(EventoRepository eventoRepository, EventoMapper eventoMapper) {
+    // 1. Declaramos el servicio del Proxy // <--- AGREGADO
+    private final ProxyService proxyService;
+
+    // 2. Lo inyectamos en el constructor // <--- MODIFICADO
+    public EventoService(EventoRepository eventoRepository, EventoMapper eventoMapper, ProxyService proxyService) {
         this.eventoRepository = eventoRepository;
         this.eventoMapper = eventoMapper;
+        this.proxyService = proxyService;
     }
 
     /**
@@ -97,7 +102,25 @@ public class EventoService {
     @Transactional(readOnly = true)
     public Optional<EventoDTO> findOne(Long id) {
         LOG.debug("Request to get Evento : {}", id);
-        return eventoRepository.findById(id).map(eventoMapper::toDto);
+
+        // 3. Obtenemos el evento de la BD local // <--- MODIFICADO
+        Optional<EventoDTO> eventoDTO = eventoRepository.findById(id).map(eventoMapper::toDto);
+
+        // 4. Si el evento existe, consultamos al Proxy para enriquecerlo con los asientos // <--- AGREGADO
+        if (eventoDTO.isPresent()) {
+            EventoDTO dto = eventoDTO.get();
+            // Usamos idCatedra porque es el ID que conoce el sistema externo (Redis/Kafka)
+            Long idParaConsultar = dto.getIdCatedra();
+
+            if (idParaConsultar != null) {
+                proxyService.obtenerAsientos(idParaConsultar).ifPresent(infoProxy -> {
+                    // Si el proxy responde, le pegamos los asientos al DTO
+                    dto.setAsientos(infoProxy.getAsientos());
+                });
+            }
+        }
+
+        return eventoDTO;
     }
 
     /**
