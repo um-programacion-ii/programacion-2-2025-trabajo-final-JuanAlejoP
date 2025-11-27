@@ -127,3 +127,9 @@ jhipster:
 # ===================================================================
 
 # application:
+
+# Configuración personalizada para conectar con el Proxy
+integration:
+  proxy:
+    url: http://localhost:8081/api/proxy
+    api-key: "backend-proxy-waguri"

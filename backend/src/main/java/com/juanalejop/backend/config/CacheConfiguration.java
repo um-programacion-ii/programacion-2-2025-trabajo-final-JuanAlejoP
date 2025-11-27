@@ -50,6 +50,11 @@ public class CacheConfiguration {
             createCache(cm, com.juanalejop.backend.domain.User.class.getName());
             createCache(cm, com.juanalejop.backend.domain.Authority.class.getName());
             createCache(cm, com.juanalejop.backend.domain.User.class.getName() + ".authorities");
+            createCache(cm, com.juanalejop.backend.domain.Evento.class.getName());
+            createCache(cm, com.juanalejop.backend.domain.Evento.class.getName() + ".ventas");
+            createCache(cm, com.juanalejop.backend.domain.Venta.class.getName());
+            createCache(cm, com.juanalejop.backend.domain.Venta.class.getName() + ".tickets");
+            createCache(cm, com.juanalejop.backend.domain.Ticket.class.getName());
             // jhipster-needle-ehcache-add-entry
         };
     }
