@@ -1,47 +1,63 @@
 package com.juanalejop.movil
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import com.juanalejop.movil.ui.screens.EventoDetalleScreen
+import com.juanalejop.movil.ui.screens.LoginScreen
+import com.juanalejop.movil.ui.screens.EventosScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import com.juanalejop.movil.ui.screens.MapaAsientosScreen
 
-import movil.composeapp.generated.resources.Res
-import movil.composeapp.generated.resources.compose_multiplatform
+enum class CurrentScreen {
+    LOGIN,
+    HOME,
+    DETALLE,
+    MAPA
+}
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
+        var currentScreen by remember { mutableStateOf(CurrentScreen.LOGIN) }
+        var selectedEventoId by remember { mutableStateOf<Long?>(null) } // Variable para guardar el ID
+        // Guardaremos los asientos elegidos para el próximo paso (Carga de Datos)
+        var asientosSeleccionados by remember { mutableStateOf<List<com.juanalejop.movil.data.model.Asiento>>(emptyList()) }
+
+        when (currentScreen) {
+            CurrentScreen.LOGIN -> {
+                LoginScreen(onLoginSuccess = { currentScreen = CurrentScreen.HOME })
             }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+            CurrentScreen.HOME -> {
+                EventosScreen(
+                    onEventoClick = { id ->
+                        selectedEventoId = id      // 1. Guardamos el ID
+                        currentScreen = CurrentScreen.DETALLE // 2. Navegamos (Cumplimos la tarea)
+                    }
+                )
+            }
+            CurrentScreen.DETALLE -> {
+                if (selectedEventoId != null) {
+                    EventoDetalleScreen(
+                        eventoId = selectedEventoId!!,
+                        onBack = { currentScreen = CurrentScreen.HOME },
+                        onComprarClick = {
+                            currentScreen = CurrentScreen.MAPA // <-- Navegar al mapa
+                        }
+                    )
+                }
+            }
+            CurrentScreen.MAPA -> {
+                if (selectedEventoId != null) {
+                    MapaAsientosScreen(
+                        eventoId = selectedEventoId!!,
+                        onBack = { currentScreen = CurrentScreen.DETALLE },
+                        onContinuar = { seleccion ->
+                            asientosSeleccionados = seleccion
+                            println("Asientos elegidos: $seleccion")
+                            // Aquí iremos a la pantalla de "Cargar Personas" (Issue 5.5)
+                        }
+                    )
                 }
             }
         }
