@@ -7,12 +7,14 @@ import com.juanalejop.movil.ui.screens.LoginScreen
 import com.juanalejop.movil.ui.screens.EventosScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.juanalejop.movil.ui.screens.MapaAsientosScreen
+import com.juanalejop.movil.ui.screens.CargaDatosScreen // Importar
 
 enum class CurrentScreen {
     LOGIN,
     HOME,
     DETALLE,
-    MAPA
+    MAPA,
+    CARGA_DATOS
 }
 
 @Composable
@@ -21,7 +23,6 @@ fun App() {
     MaterialTheme {
         var currentScreen by remember { mutableStateOf(CurrentScreen.LOGIN) }
         var selectedEventoId by remember { mutableStateOf<Long?>(null) } // Variable para guardar el ID
-        // Guardaremos los asientos elegidos para el próximo paso (Carga de Datos)
         var asientosSeleccionados by remember { mutableStateOf<List<com.juanalejop.movil.data.model.Asiento>>(emptyList()) }
 
         when (currentScreen) {
@@ -54,11 +55,21 @@ fun App() {
                         onBack = { currentScreen = CurrentScreen.DETALLE },
                         onContinuar = { seleccion ->
                             asientosSeleccionados = seleccion
-                            println("Asientos elegidos: $seleccion")
-                            // Aquí iremos a la pantalla de "Cargar Personas" (Issue 5.5)
+                            currentScreen = CurrentScreen.CARGA_DATOS // <-- Navegar
                         }
                     )
                 }
+            }
+            CurrentScreen.CARGA_DATOS -> {
+                CargaDatosScreen(
+                    asientos = asientosSeleccionados,
+                    onBack = { currentScreen = CurrentScreen.MAPA },
+                    onConfirmarCompra = { datos ->
+                        // Aquí termina el Milestone 5.
+                        // En el Milestone 6 enviaremos 'datos' al Backend.
+                        println("Listo para comprar: $datos")
+                    }
+                )
             }
         }
     }
