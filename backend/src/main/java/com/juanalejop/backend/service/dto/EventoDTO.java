@@ -33,6 +33,10 @@ public class EventoDTO implements Serializable {
     @NotNull
     private Double precio;
 
+    private Integer filaAsientos;
+
+    private Integer columnAsientos;
+
     public Long getId() {
         return id;
     }
@@ -115,6 +119,14 @@ public class EventoDTO implements Serializable {
     public void setAsientos(java.util.List<com.juanalejop.backend.service.dto.proxy.AsientoProxyDto> asientos) {
         this.asientos = asientos;
     }
+
+    public Integer getFilaAsientos() { return filaAsientos; }
+
+    public void setFilaAsientos(Integer filaAsientos) { this.filaAsientos = filaAsientos; }
+
+    public Integer getColumnAsientos() { return columnAsientos; }
+
+    public void setColumnAsientos(Integer columnAsientos) { this.columnAsientos = columnAsientos; }
 
     @Override
     public boolean equals(Object o) {

@@ -1,5 +1,7 @@
 package com.juanalejop.backend.web.rest;
 
+import com.juanalejop.backend.domain.Evento;
+import com.juanalejop.backend.repository.EventoRepository;
 import com.juanalejop.backend.service.EventoService;
 import com.juanalejop.backend.service.ProxyService;
 import com.juanalejop.backend.service.TicketService;
@@ -12,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/reservas")
@@ -21,66 +25,122 @@ public class ReservaController {
     private final VentaService ventaService;
     private final TicketService ticketService;
     private final EventoService eventoService;
+    private final EventoRepository eventoRepository;
 
-    public ReservaController(ProxyService proxyService, VentaService ventaService, TicketService ticketService, EventoService eventoService) {
+    public ReservaController(ProxyService proxyService,
+                             VentaService ventaService,
+                             TicketService ticketService,
+                             EventoService eventoService,
+                             EventoRepository eventoRepository) {
         this.proxyService = proxyService;
         this.ventaService = ventaService;
         this.ticketService = ticketService;
         this.eventoService = eventoService;
+        this.eventoRepository = eventoRepository;
     }
 
     @PostMapping("/bloquear")
     public ResponseEntity<?> bloquearAsientos(@RequestBody SolicitudBloqueoDTO solicitud) {
+        // TRADUCCIÓN DE ID (Local -> Cátedra)
+        Evento eventoLocal = eventoRepository.findById(solicitud.getEventoId()).orElse(null);
+
+        if (eventoLocal != null && eventoLocal.getIdCatedra() != null) {
+            System.out.println("🔄 Traducción Bloqueo: ID Local " + solicitud.getEventoId() + " -> ID Cátedra " + eventoLocal.getIdCatedra());
+            solicitud.setEventoId(eventoLocal.getIdCatedra());
+        }
+
         boolean exito = proxyService.bloquearAsientos(solicitud);
+
         if (exito) {
-            return ResponseEntity.ok().body("{\"mensaje\": \"Bloqueo exitoso\"}");
+            return ResponseEntity.ok().body(Map.of("mensaje", "Bloqueo exitoso"));
         } else {
-            return ResponseEntity.badRequest().body("{\"mensaje\": \"No se pudieron bloquear los asientos\"}");
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "No se pudieron bloquear los asientos"));
         }
     }
 
+    // Agregá este campo en la clase si no tenés un logger, o usá System.out
+    private final ObjectMapper objectMapper = new ObjectMapper(); // Para imprimir el JSON
+
     @PostMapping("/vender")
     public ResponseEntity<?> realizarVenta(@RequestBody SolicitudVentaDTO solicitud) {
-        // 1. Delegamos al Proxy (Cátedra)
+
+        Long idEventoLocal = solicitud.getEventoId();
+        Evento eventoLocal = eventoRepository.findById(idEventoLocal).orElse(null);
+
+        if (eventoLocal == null) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Evento no encontrado localmente"));
+        }
+
+        // A. Traducir ID
+        if (eventoLocal.getIdCatedra() != null) {
+            solicitud.setEventoId(eventoLocal.getIdCatedra());
+        }
+
+        // B. Inyectar PRECIO
+        if (solicitud.getPrecioVenta() == null || solicitud.getPrecioVenta() == 0.0) {
+            solicitud.setPrecioVenta(eventoLocal.getPrecio());
+        }
+
+        // C. Inyectar FECHA (¡CAMBIO CLAVE AQUÍ!) 🛠️
+        if (solicitud.getFecha() == null) {
+            String fechaEstricta = java.time.Instant.now()
+                .truncatedTo(java.time.temporal.ChronoUnit.MILLIS)
+                .toString();
+            solicitud.setFecha(fechaEstricta);
+        }
+
+        // 🔍 LOG DE DEBUG: Imprimimos lo que vamos a mandar
+        try {
+            String jsonDebug = objectMapper.writeValueAsString(solicitud);
+            System.out.println("📦 JSON ENVIADO A VENTA: " + jsonDebug);
+        } catch (Exception e) {
+            System.out.println("📦 No se pudo imprimir el JSON de debug");
+        }
+
+        // 3. Delegamos al Proxy
         boolean exitoCatedra = proxyService.realizarVenta(solicitud);
 
         if (exitoCatedra) {
             try {
-                // 2. Si Cátedra dijo OK, guardamos localmente
-                guardarVentaLocal(solicitud);
-                return ResponseEntity.ok().body("{\"mensaje\": \"Venta exitosa y registrada\"}");
+                // 4. Restaurar ID Local (para guardar en nuestra BD)
+                solicitud.setEventoId(idEventoLocal);
+
+                // 5. Guardar venta localmente
+                guardarVentaLocal(solicitud, eventoLocal);
+
+                return ResponseEntity.ok().body(Map.of("mensaje", "Venta exitosa y registrada"));
             } catch (Exception e) {
-                // Si falla el guardado local pero Cátedra ya cobró, es un problema grave.
-                // En un sistema real usaríamos transacciones distribuidas o cola de reintentos.
-                // Para este trabajo, logueamos el error crítico.
                 System.err.println("CRITICAL: Venta confirmada en Cátedra pero falló guardado local: " + e.getMessage());
-                return ResponseEntity.internalServerError().body("{\"mensaje\": \"Venta confirmada pero error al guardar localmente\"}");
+                return ResponseEntity.ok().body(Map.of("mensaje", "Venta confirmada (con advertencia local)"));
             }
         } else {
-            return ResponseEntity.badRequest().body("{\"mensaje\": \"Falló la venta en Cátedra\"}");
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Falló la venta en Cátedra"));
         }
     }
 
-    private void guardarVentaLocal(SolicitudVentaDTO solicitud) {
-        // Crear Venta
+    private void guardarVentaLocal(SolicitudVentaDTO solicitud, Evento eventoEntity) {
         VentaDTO venta = new VentaDTO();
         venta.setFecha(ZonedDateTime.now());
-        venta.setTotal(0.0); // Deberíamos calcularlo con el precio del evento, por ahora 0
-        venta.setEstado("CONFIRMADA");
 
-        // Vincular con Evento (buscamos por ID de Cátedra o asumimos que es el mismo si sincronizamos)
-        // Simplificación: Asumimos que tenemos el evento local con ese ID
-        // venta.setEventoId(solicitud.getEventoId()); <-- Esto depende de cómo tengas el DTO
+        if (eventoEntity != null && eventoEntity.getPrecio() != null) {
+            double total = eventoEntity.getPrecio() * solicitud.getAsientos().size();
+            venta.setTotal(total);
+        } else {
+            venta.setTotal(0.0);
+        }
+
+        venta.setEstado("CONFIRMADA");
+        // Si tu VentaDTO tiene campo para ID de evento, descomentar:
+        // venta.setEventoId(eventoEntity.getId());
 
         VentaDTO ventaGuardada = ventaService.save(venta);
 
-        // Crear Tickets
         for (SolicitudVentaDTO.AsientoPersonaDTO asiento : solicitud.getAsientos()) {
             TicketDTO ticket = new TicketDTO();
             ticket.setFila(asiento.getFila());
             ticket.setColumna(asiento.getColumna());
             ticket.setNombrePersona(asiento.getPersona());
-            ticket.setVenta(ventaGuardada); // Relacionar con la venta padre
+            ticket.setVenta(ventaGuardada);
 
             ticketService.save(ticket);
         }
