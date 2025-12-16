@@ -3,7 +3,9 @@ package com.juanalejop.movil.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juanalejop.movil.data.model.Asiento
@@ -23,30 +26,46 @@ fun AsientoItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // Definimos el color según el estado
+    // Definimos el color (tu lógica actual)
     val backgroundColor = when {
         asiento.estado == "Vendido" -> Color.Red.copy(alpha = 0.5f)
         asiento.estado == "Bloqueado" -> Color.Gray.copy(alpha = 0.5f)
-        isSelected -> MaterialTheme.colorScheme.primary // Seleccionado por mí
-        else -> Color.Green.copy(alpha = 0.3f) // Libre
+        isSelected -> MaterialTheme.colorScheme.primary
+        else -> Color.Green.copy(alpha = 0.3f)
     }
 
-    val isClickable = asiento.estado == "Libre" // Solo se pueden tocar los libres
+    val isClickable = asiento.estado == "Libre"
 
     Box(
         modifier = Modifier
-            .size(40.dp)
+            .size(40.dp) // Tamaño cuadrado fijo
             .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
             .clickable(enabled = isClickable) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        // Mostramos Fila-Columna chiquito (opcional, ayuda a debuggear)
-        Text(
-            text = "${asiento.fila}-${asiento.columna}",
-            fontSize = 10.sp,
-            color = Color.Black
-        )
+        // Usamos una Columna para apilar Fila y Columna
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Texto de Fila (Arriba, un poco más pequeño)
+            Text(
+                text = "F${asiento.fila}",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black.copy(alpha = 0.7f),
+                lineHeight = 10.sp
+            )
+            // Texto de Columna (Abajo, más destacado)
+            Text(
+                text = "C${asiento.columna}",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.Black,
+                lineHeight = 11.sp
+            )
+        }
     }
 }
