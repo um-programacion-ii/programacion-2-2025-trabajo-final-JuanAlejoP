@@ -17,7 +17,6 @@ public class ProxyController {
     private final RedisService redisService;
     private final CatedraService catedraService;
 
-    // Inyectamos el valor del application.yml
     @Value("${proxy.api-key}")
     private String apiKeyConfigurada;
 
@@ -25,21 +24,21 @@ public class ProxyController {
         this.redisService = redisService;
         this.catedraService = catedraService;
     }
+
     @GetMapping("/eventos/{id}/asientos")
     public ResponseEntity<?> getAsientosDelEvento(
             @PathVariable Long id,
             @RequestHeader(value = "X-API-KEY", required = false) String apiKeyRecibida) {
 
-        // 1. Verificación de Seguridad
         if (apiKeyRecibida == null || !apiKeyRecibida.equals(apiKeyConfigurada)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acceso denegado: API Key inválida");
         }
 
-        // 2. Lógica de Negocio (solo si pasó la seguridad)
         return redisService.getAsientos(id)
-                .map(ResponseEntity::ok) // Si existe en Redis -> 200 OK + JSON
-                .orElse(ResponseEntity.notFound().build()); // Si no existe -> 404 Not Found
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
+
     @PostMapping("/bloquear")
     public ResponseEntity<?> bloquear(
             @RequestBody SolicitudBloqueoDTO body,
@@ -50,6 +49,7 @@ public class ProxyController {
         boolean exito = catedraService.bloquearAsientos(body);
         return exito ? ResponseEntity.ok("Bloqueo enviado") : ResponseEntity.status(500).body("Error en cátedra");
     }
+
     @PostMapping("/vender")
     public ResponseEntity<?> vender(
             @RequestBody SolicitudVentaDTO body,
@@ -60,7 +60,27 @@ public class ProxyController {
         boolean exito = catedraService.realizarVenta(body);
         return exito ? ResponseEntity.ok("Venta enviada") : ResponseEntity.status(500).body("Error en cátedra");
     }
-    // Métodos auxiliares para no repetir código de seguridad
+
+    // --- Endpoint Resumido (existente) ---
+    @GetMapping("/eventos")
+    public ResponseEntity<?> obtenerEventosCatedra(
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKeyRecibida) {
+
+        if (!validarApiKey(apiKeyRecibida)) return unauthorized();
+
+        return catedraService.getEventosResumidos();
+    }
+
+    // --- Endpoint Completo (NUEVO) ---
+    @GetMapping("/eventos-full")
+    public ResponseEntity<?> obtenerEventosCompletos(
+            @RequestHeader(value = "X-API-KEY", required = false) String apiKeyRecibida) {
+
+        if (!validarApiKey(apiKeyRecibida)) return unauthorized();
+
+        return catedraService.getEventosCompletos();
+    }
+
     private boolean validarApiKey(String recibida) {
         return recibida != null && recibida.equals(apiKeyConfigurada);
     }
