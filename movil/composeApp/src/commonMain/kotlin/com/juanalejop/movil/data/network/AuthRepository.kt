@@ -15,6 +15,11 @@ object TokenManager {
     fun saveToken(token: String) {
         jwt = token
     }
+
+    // 🆕 NUEVO MÉTODO
+    fun clearToken() {
+        jwt = null
+    }
 }
 
 class AuthRepository {
@@ -34,5 +39,10 @@ class AuthRepository {
             e.printStackTrace()
             Result.failure(e)
         }
+    }
+
+    // 🆕 NUEVO MÉTODO
+    fun logout() {
+        TokenManager.clearToken()
     }
 }
