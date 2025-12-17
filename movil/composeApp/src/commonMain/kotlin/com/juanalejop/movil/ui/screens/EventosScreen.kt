@@ -16,6 +16,8 @@ import com.juanalejop.movil.data.model.Evento
 import com.juanalejop.movil.data.network.AuthRepository
 import com.juanalejop.movil.data.network.EventosRepository
 import kotlinx.coroutines.launch
+import coil3.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,19 +118,68 @@ fun EventosScreen(
 fun EventoCard(evento: Evento, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Título
-            Text(text = evento.titulo, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            // Fecha (simple) y Precio
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(text = "Precio: $${evento.precio}", color = MaterialTheme.colorScheme.primary)
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+
+            // 1. MINIATURA DE IMAGEN
+            if (!evento.imagenUrl.isNullOrEmpty()) {
+                Card(
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.size(80.dp)
+                ) {
+                    AsyncImage(
+                        model = evento.imagenUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
             }
-            // Resumen
-            if (!evento.resumen.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = evento.resumen, style = MaterialTheme.typography.bodyMedium)
+
+            // 2. TEXTOS
+            Column(modifier = Modifier.weight(1f)) {
+
+                // TIPO (Badge)
+                evento.eventoTipo?.let { tipo ->
+                    Text(
+                        text = tipo.nombre.uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                // TÍTULO
+                Text(
+                    text = evento.titulo,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2
+                )
+
+                // PRECIO
+                Text(
+                    text = "$${evento.precio}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+
+                // --- 🔙 EL RESUMEN RECUPERADO ---
+                if (!evento.resumen.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = evento.resumen,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2, // Limitamos a 2 líneas para que no deforme la tarjeta
+                        // overflow = TextOverflow.Ellipsis // (Opcional si importas TextOverflow)
+                    )
+                }
             }
         }
     }

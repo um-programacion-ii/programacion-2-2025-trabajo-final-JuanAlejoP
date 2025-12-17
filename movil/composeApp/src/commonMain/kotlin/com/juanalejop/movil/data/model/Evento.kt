@@ -8,12 +8,30 @@ data class Evento(
     val titulo: String,
     val resumen: String? = null,
     val descripcion: String? = null,
-    val fechaHora: String, // JHipster manda la fecha como texto (ISO-8601)
+    val fechaHora: String,
     val precio: Double,
-    val imagenUrl: String? = null,
+    val imagenUrl: String? = null, // Ya viene lleno!
+    val direccion: String? = null, // NUEVO
 
-    val filaAsientos: Int? = 10,  // Default para que no rompa si viene null
+    val filaAsientos: Int? = 10,
     val columnAsientos: Int? = 10,
 
-    val asientos: List<Asiento>? = null // La lista de asientos puede venir vacía o nula
+    val asientos: List<Asiento>? = null,
+
+    // NUEVOS OBJETOS COMPLEJOS
+    val eventoTipo: EventoTipo? = null,
+    val integrantes: List<Integrante>? = null
+)
+
+@Serializable
+data class EventoTipo(
+    val nombre: String,
+    val descripcion: String? = null
+)
+
+@Serializable
+data class Integrante(
+    val nombre: String,
+    val apellido: String,
+    val identificacion: String? = null
 )
