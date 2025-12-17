@@ -6,17 +6,17 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
+
 @Service
 public class CatedraService {
 
     private final RestTemplate restTemplate;
 
-    // URL base de la cátedra (ej. http://192.168.194.250:8080)
-    // Podemos hardcodearla o ponerla en application.yml.
-    // Para simplificar, la ponemos aquí o usamos la del application.yml si querés ser prolijo.
+    // URL base de la cátedra
     private final String CATEDRA_URL = "http://192.168.194.250:8080/api/endpoints/v1";
 
-    // Necesitamos el token del alumno para hablar con la cátedra
+    // Token del application.yml
     @Value("${proxy.catedra-token}")
     private String catedraToken;
 
@@ -32,28 +32,54 @@ public class CatedraService {
         return enviarPost(CATEDRA_URL + "/realizar-venta", payload);
     }
 
+    // --- 1. MÉTODO PARA LISTAS RÁPIDAS (Payload 3) ---
+    public ResponseEntity<Object> getEventosResumidos() {
+        return hacerGet(CATEDRA_URL + "/eventos-resumidos");
+    }
+
+    // --- 2. MÉTODO NUEVO PARA SINCRONIZACIÓN (Payload 4 - Con filas/cols) ---
+    public ResponseEntity<Object> getEventosCompletos() {
+        return hacerGet(CATEDRA_URL + "/eventos");
+    }
+
+    // --- Helper para peticiones GET ---
+    private ResponseEntity<Object> hacerGet(String url) {
+        try {
+            System.out.println("🌐 Pidiendo GET a Cátedra: " + url);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(catedraToken);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            return restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+        } catch (Exception e) {
+            System.err.println("❌ Error GET en Cátedra: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     private boolean enviarPost(String url, Object payload) {
         try {
+            System.out.println("🌐 Conectando con Cátedra: " + url);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(catedraToken); // Token JWT de la cátedra
+            headers.setBearerAuth(catedraToken);
 
             HttpEntity<Object> entity = new HttpEntity<>(payload, headers);
 
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
 
-            // Si devuelve 200 OK, asumimos éxito.
-            // Si devuelve 200 pero con "resultado": false en el JSON, también cuenta como "éxito técnico" (llegó).
-            // Lo ideal sería parsear el JSON de respuesta, pero por ahora con el status basta.
-            return response.getStatusCode() == HttpStatus.OK;
+            if (response.getBody() != null && response.getBody().containsKey("resultado")) {
+                boolean resultadoReal = Boolean.TRUE.equals(response.getBody().get("resultado"));
+                System.out.println("✅ Cátedra respondió. Resultado real: " + resultadoReal);
+                return resultadoReal;
+            }
+
+            return false;
 
         } catch (Exception e) {
-            System.err.println("❌ Error comunicando con Cátedra (" + url + "): " + e.getMessage());
-            // MOCKING / FALLBACK (La estrategia que hablamos)
-            // Si la cátedra falla (500, timeout), devolvemos true para que tu app no se trabe.
-            // Podes comentar esto si querés probar el error real.
-            System.out.println("⚠️ Activando MOCK por fallo de cátedra: Simulando éxito.");
-            return true;
+            System.err.println("❌ ERROR REAL en Cátedra: " + e.getMessage());
+            return false;
         }
     }
 }

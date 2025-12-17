@@ -54,6 +54,12 @@ public class Evento implements Serializable {
     @Column(name = "precio", nullable = false)
     private Double precio;
 
+    @Column(name = "fila_asientos")
+    private Integer filaAsientos;
+
+    @Column(name = "column_asientos")
+    private Integer columnAsientos;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "evento")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JsonIgnoreProperties(value = { "tickets", "evento" }, allowSetters = true)
@@ -178,6 +184,32 @@ public class Evento implements Serializable {
         this.precio = precio;
     }
 
+    public Integer getFilaAsientos() {
+        return this.filaAsientos;
+    }
+
+    public Evento filaAsientos(Integer filaAsientos) {
+        this.setFilaAsientos(filaAsientos);
+        return this;
+    }
+
+    public void setFilaAsientos(Integer filaAsientos) {
+        this.filaAsientos = filaAsientos;
+    }
+
+    public Integer getColumnAsientos() {
+        return this.columnAsientos;
+    }
+
+    public Evento columnAsientos(Integer columnAsientos) {
+        this.setColumnAsientos(columnAsientos);
+        return this;
+    }
+
+    public void setColumnAsientos(Integer columnAsientos) {
+        this.columnAsientos = columnAsientos;
+    }
+
     public Set<Venta> getVentas() {
         return this.ventas;
     }
@@ -241,6 +273,8 @@ public class Evento implements Serializable {
             ", direccion='" + getDireccion() + "'" +
             ", imagenUrl='" + getImagenUrl() + "'" +
             ", precio=" + getPrecio() +
+            ", filaAsientos=" + getFilaAsientos() +
+            ", columnAsientos=" + getColumnAsientos() +
             "}";
     }
 }

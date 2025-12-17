@@ -35,10 +35,20 @@ fun App() {
                 LoginScreen(onLoginSuccess = { currentScreen = CurrentScreen.HOME })
             }
             CurrentScreen.HOME -> {
-                EventosScreen(onEventoClick = { id ->
-                    selectedEventoId = id
-                    currentScreen = CurrentScreen.DETALLE
-                })
+                // 🆕 ACTUALIZACIÓN ISSUE 7.1: Agregamos el callback onLogout
+                EventosScreen(
+                    onEventoClick = { id ->
+                        selectedEventoId = id
+                        currentScreen = CurrentScreen.DETALLE
+                    },
+                    onLogout = {
+                        // Limpiamos estados por seguridad
+                        selectedEventoId = null
+                        asientosSeleccionados = emptyList()
+                        // Volvemos a la pantalla de Login
+                        currentScreen = CurrentScreen.LOGIN
+                    }
+                )
             }
             CurrentScreen.DETALLE -> {
                 if (selectedEventoId != null) {
@@ -50,7 +60,6 @@ fun App() {
                 }
             }
             CurrentScreen.MAPA -> {
-                // --- ISSUE 6.2: LÓGICA DE BLOQUEO ---
                 if (selectedEventoId != null) {
                     MapaAsientosScreen(
                         eventoId = selectedEventoId!!,
@@ -77,13 +86,11 @@ fun App() {
                 }
             }
             CurrentScreen.CARGA_DATOS -> {
-                // --- ISSUE 6.3: LÓGICA DE VENTA ---
                 CargaDatosScreen(
                     asientos = asientosSeleccionados,
                     onBack = { currentScreen = CurrentScreen.MAPA },
                     onConfirmarCompra = { mapaDatos ->
                         scope.launch {
-                            // 1. Transformar el mapa (Asiento -> Nombre) a la lista que pide el backend
                             val listaAsientosVenta = mapaDatos.map { (asiento, nombre) ->
                                 AsientoPersona(asiento.fila, asiento.columna, nombre)
                             }
@@ -97,7 +104,6 @@ fun App() {
                             reservasRepository.realizarVenta(solicitud)
                                 .onSuccess {
                                     println("¡VENTA EXITOSA!")
-                                    // Volver al inicio tras la compra
                                     currentScreen = CurrentScreen.HOME
                                 }
                                 .onFailure {

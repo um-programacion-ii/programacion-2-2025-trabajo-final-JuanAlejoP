@@ -12,5 +12,8 @@ data class Evento(
     val precio: Double,
     val imagenUrl: String? = null,
 
+    val filaAsientos: Int? = 10,  // Default para que no rompa si viene null
+    val columnAsientos: Int? = 10,
+
     val asientos: List<Asiento>? = null // La lista de asientos puede venir vacía o nula
 )

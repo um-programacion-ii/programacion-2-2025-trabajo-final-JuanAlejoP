@@ -49,7 +49,7 @@ spring:
       enabled: true
   liquibase:
     # Remove 'faker' if you do not want the sample data to be loaded automatically
-    contexts: dev, faker
+    contexts: dev
   mail:
     host: localhost
     port: 25
@@ -92,9 +92,9 @@ jhipster:
       jwt:
         # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
         base64-secret: ZGY4ZjUyNjUzZmYzYTU0N2ViNmM4YTc5MjYyYmU3ZDAyZmY3MmJlMDg2OWNkMTU1MjVhZWExNTY3OTcwY2U1MzI0YjlkY2U1NWZkNmRmMDI4NDE2MTJkMWFhMDczZGE4YTRlNThlZjZkZTcxYzM4NTQwOGE5Yzk3YmUzODkxMTA=
-        # Token is valid 24 hours
-        token-validity-in-seconds: 86400
-        token-validity-in-seconds-for-remember-me: 2592000
+        # CAMBIO: 30 minutos (1800 segundos)
+        token-validity-in-seconds: 1800
+        token-validity-in-seconds-for-remember-me: 1800 # por defecto eran 2592000
   mail: # specific JHipster mail property, for standard properties see MailProperties
     base-url: http://127.0.0.1:8080
   logging:
