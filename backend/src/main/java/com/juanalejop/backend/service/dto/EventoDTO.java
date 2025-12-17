@@ -41,6 +41,18 @@ public class EventoDTO implements Serializable {
         return id;
     }
 
+    private EventoTipoDTO eventoTipo;
+
+    private java.util.List<IntegranteDTO> integrantes;
+
+    public EventoTipoDTO getEventoTipo() { return eventoTipo; }
+
+    public void setEventoTipo(EventoTipoDTO eventoTipo) { this.eventoTipo = eventoTipo; }
+
+    public java.util.List<IntegranteDTO> getIntegrantes() { return integrantes; }
+
+    public void setIntegrantes(java.util.List<IntegranteDTO> integrantes) { this.integrantes = integrantes; }
+
     public void setId(Long id) {
         this.id = id;
     }

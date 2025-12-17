@@ -5,15 +5,23 @@ import com.juanalejop.backend.repository.EventoRepository;
 import com.juanalejop.backend.service.EventoService;
 import com.juanalejop.backend.service.ProxyService;
 import com.juanalejop.backend.service.dto.EventoDTO;
+import com.juanalejop.backend.service.dto.EventoTipoDTO;
+import com.juanalejop.backend.service.dto.IntegranteDTO;
 import com.juanalejop.backend.web.rest.errors.BadRequestAlertException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +49,9 @@ public class EventoResource {
     private final EventoRepository eventoRepository;
     private final ProxyService proxyService;
 
+    // Inyectamos Jackson para procesar los JSON complejos
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Value("${integration.proxy.api-key}")
     private String internalApiKey;
 
@@ -66,68 +77,103 @@ public class EventoResource {
         return ResponseEntity.ok().build();
     }
 
-    // --- MÉTODO REFACTORIZADO DE SINCRONIZACIÓN (UPSERT) ---
+    // --- MÉTODO REFACTORIZADO DE SINCRONIZACIÓN (UPSERT con DTOs) ---
     private void sincronizarConCatedra() {
         try {
             LOG.info("⬇️ Descargando eventos frescos desde el Proxy...");
             List<Map<String, Object>> eventosExternos = proxyService.obtenerListaEventos();
 
             if (eventosExternos != null && !eventosExternos.isEmpty()) {
-                // Traemos todos los locales para buscar duplicados en memoria
-                // (Optimización: Evita hacer N consultas a la base)
+                // Traemos entidades locales solo para chequear IDs y existencia de forma eficiente
                 List<Evento> eventosLocales = eventoRepository.findAll();
 
                 for (Map<String, Object> dato : eventosExternos) {
                     try {
                         Long idCatedra = Long.valueOf(dato.get("id").toString());
 
-                        // Buscamos si ya existe localmente
-                        Evento evento = eventosLocales.stream()
+                        // Creamos un DTO para guardar
+                        EventoDTO eventoDTO = new EventoDTO();
+
+                        // Buscamos si ya existe localmente para preservar su ID (Update)
+                        Optional<Evento> existente = eventosLocales.stream()
                             .filter(e -> e.getIdCatedra() != null && e.getIdCatedra().equals(idCatedra))
-                            .findFirst()
-                            .orElse(new Evento()); // Si no existe, creamos uno nuevo
+                            .findFirst();
 
-                        // Mapeo de datos (Actualiza tanto nuevos como existentes)
-                        evento.setIdCatedra(idCatedra);
-                        evento.setTitulo((String) dato.get("titulo"));
-                        evento.setDescripcion((String) dato.get("descripcion"));
-                        evento.setResumen((String) dato.get("resumen"));
-                        evento.setImagenUrl((String) dato.get("imagenUrl"));
-
-                        // Dirección (puede ser null)
-                        if (dato.get("direccion") != null) {
-                            evento.setDireccion((String) dato.get("direccion"));
+                        if (existente.isPresent()) {
+                            eventoDTO.setId(existente.get().getId());
                         }
 
-                        // Precio
+                        // --- MAPEO DE CAMPOS (Map -> DTO) ---
+                        eventoDTO.setIdCatedra(idCatedra);
+                        eventoDTO.setTitulo((String) dato.get("titulo"));
+                        eventoDTO.setDescripcion((String) dato.get("descripcion"));
+                        eventoDTO.setResumen((String) dato.get("resumen"));
+
+                        // OJO: El proxy manda "imagen", el DTO espera "imagenUrl"
+                        if (dato.get("imagen") != null) {
+                            eventoDTO.setImagenUrl((String) dato.get("imagen"));
+                        }
+
+                        // Dirección
+                        if (dato.get("direccion") != null) {
+                            eventoDTO.setDireccion((String) dato.get("direccion"));
+                        }
+
+                        // Precio (puede venir como 'precio' o 'precioEntrada')
                         Object precioObj = dato.get("precioEntrada");
                         if (precioObj == null) precioObj = dato.get("precio");
-                        evento.setPrecio(precioObj != null ? Double.valueOf(precioObj.toString()) : 0.0);
+                        eventoDTO.setPrecio(precioObj != null ? Double.valueOf(precioObj.toString()) : 0.0);
 
                         // Fecha
                         Object fechaObj = dato.get("fecha");
                         if (fechaObj != null) {
                             try {
-                                evento.setFechaHora(java.time.ZonedDateTime.parse(fechaObj.toString()));
+                                eventoDTO.setFechaHora(ZonedDateTime.parse(fechaObj.toString()));
                             } catch (Exception e) {
-                                evento.setFechaHora(java.time.ZonedDateTime.now());
+                                eventoDTO.setFechaHora(ZonedDateTime.now());
                             }
                         } else {
-                            evento.setFechaHora(java.time.ZonedDateTime.now());
+                            eventoDTO.setFechaHora(ZonedDateTime.now());
                         }
 
                         // Dimensiones
                         Object filasObj = dato.get("filaAsientos");
-                        evento.setFilaAsientos(filasObj != null ? Integer.valueOf(filasObj.toString()) : 10);
-
+                        eventoDTO.setFilaAsientos(filasObj != null ? Integer.valueOf(filasObj.toString()) : 10);
                         Object colObj = dato.get("columnAsientos");
-                        evento.setColumnAsientos(colObj != null ? Integer.valueOf(colObj.toString()) : 10);
+                        eventoDTO.setColumnAsientos(colObj != null ? Integer.valueOf(colObj.toString()) : 10);
 
-                        // Guardamos (Update o Insert)
-                        eventoRepository.save(evento);
+                        // --- 🆕 MAPEO DE OBJETOS COMPLEJOS ---
+
+                        // 1. EventoTipo
+                        if (dato.get("eventoTipo") != null) {
+                            try {
+                                EventoTipoDTO tipo = objectMapper.convertValue(dato.get("eventoTipo"), EventoTipoDTO.class);
+                                eventoDTO.setEventoTipo(tipo);
+                            } catch (Exception e) {
+                                LOG.warn("⚠️ No se pudo mapear eventoTipo: " + e.getMessage());
+                            }
+                        }
+
+                        // 2. Integrantes
+                        if (dato.get("integrantes") != null) {
+                            try {
+                                List<IntegranteDTO> integrantes = objectMapper.convertValue(
+                                    dato.get("integrantes"),
+                                    new TypeReference<List<IntegranteDTO>>(){}
+                                );
+                                eventoDTO.setIntegrantes(integrantes);
+                            } catch (Exception e) {
+                                LOG.warn("⚠️ No se pudo mapear integrantes: " + e.getMessage());
+                            }
+                        }
+
+                        // Guardamos usando el SERVICE para que active el MAPPER
+                        // (El Mapper se encargará de convertir integrantes a JSON String)
+                        eventoService.save(eventoDTO);
 
                     } catch (Exception innerEx) {
-                        LOG.error("⚠️ Error procesando un evento individual: " + innerEx.getMessage());
+                        LOG.error("⚠️ Error procesando evento ID Catedra " + dato.get("id") + ": " + innerEx.getMessage());
+                        innerEx.printStackTrace();
                     }
                 }
                 LOG.info("✅ Sincronización completada. Base de datos actualizada.");

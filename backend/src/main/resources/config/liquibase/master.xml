@@ -25,6 +25,7 @@
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20251127205342_added_entity_constraints_Venta.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20251127205343_added_entity_constraints_Ticket.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20251217000000_added_entity_Evento_extensions.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>
