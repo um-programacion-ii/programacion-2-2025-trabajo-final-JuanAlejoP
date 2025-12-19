@@ -14,7 +14,7 @@ import com.juanalejop.movil.ui.screens.LoginScreen
 import com.juanalejop.movil.ui.screens.MapaAsientosScreen
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
+import com.juanalejop.movil.ui.theme.AppTheme
 enum class CurrentScreen {
     LOGIN, HOME, DETALLE, MAPA, CARGA_DATOS
 }
@@ -22,7 +22,7 @@ enum class CurrentScreen {
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
+    AppTheme {
         val scope = rememberCoroutineScope()
         val reservasRepository = remember { ReservasRepository() }
 

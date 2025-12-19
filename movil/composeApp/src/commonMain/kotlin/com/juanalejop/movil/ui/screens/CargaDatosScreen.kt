@@ -8,6 +8,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.juanalejop.movil.data.model.Asiento
@@ -17,12 +18,10 @@ import com.juanalejop.movil.data.model.Asiento
 fun CargaDatosScreen(
     asientos: List<Asiento>,
     onBack: () -> Unit,
-    onConfirmarCompra: (Map<Asiento, String>) -> Unit // Devuelve Mapa: Asiento -> Nombre Persona
+    onConfirmarCompra: (Map<Asiento, String>) -> Unit
 ) {
-    // Estado para guardar los nombres. Clave: Índice del asiento, Valor: Nombre
     val nombresState = remember { mutableStateMapOf<Int, String>() }
 
-    // Validar si todos los campos tienen texto
     val isFormValid = asientos.indices.all { i ->
         !nombresState[i].isNullOrBlank()
     }
@@ -41,14 +40,13 @@ fun CargaDatosScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    // Preparamos el mapa final para enviar
                     val resultado = asientos.mapIndexed { index, asiento ->
                         asiento to (nombresState[index] ?: "")
                     }.toMap()
                     onConfirmarCompra(resultado)
                 },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                enabled = isFormValid // Solo habilita si llenó todo
+                enabled = isFormValid
             ) {
                 Text("Confirmar Compra")
             }
@@ -62,20 +60,29 @@ fun CargaDatosScreen(
             item {
                 Text(
                     "Por favor ingresa el nombre completo para cada entrada:",
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
 
             items(asientos.size) { index ->
                 val asiento = asientos[index]
-                Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+                // Esta Card ahora será BLANCA automáticamente por el Theme
+                Card(
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "Asiento: Fila ${asiento.fila} - Columna ${asiento.columna}",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+
                         OutlinedTextField(
                             value = nombresState[index] ?: "",
                             onValueChange = { nuevoNombre ->

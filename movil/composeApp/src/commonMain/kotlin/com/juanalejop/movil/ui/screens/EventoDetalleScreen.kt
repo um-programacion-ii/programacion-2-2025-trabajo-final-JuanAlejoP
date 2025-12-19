@@ -1,10 +1,13 @@
 package com.juanalejop.movil.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
@@ -12,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -83,14 +87,27 @@ fun EventoDetalleScreen(
                 ) {
                     // 1. BANNER DE IMAGEN 🖼️
                     if (!item.imagenUrl.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = item.imagenUrl,
-                            contentDescription = null,
+                        // 🎨 LÓGICA DE COLOR
+                        val placeholderColor = if (isSystemInDarkTheme())
+                            com.juanalejop.movil.ui.theme.PlaceholderDark
+                        else
+                            com.juanalejop.movil.ui.theme.SoftTeal
+
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(240.dp),
-                            contentScale = ContentScale.Crop
-                        )
+                                .height(240.dp)
+                                .background(placeholderColor), // USAR VARIABLE
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = item.imagenUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                error = rememberVectorPainter(image = Icons.Default.BrokenImage)
+                            )
+                        }
                     }
 
                     Column(modifier = Modifier.padding(16.dp)) {
