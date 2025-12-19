@@ -7,35 +7,15 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Paleta Oscura (Dark Mode) 🌙
-private val DarkColorScheme = darkColorScheme(
-    primary = ElectricTeal,       // Botones brillan neón
-    primaryContainer = ElectricTeal, // Contenedores más apagados
-    secondary = ElectricTeal,     // Textos secundarios resaltan
-
-    background = Black,           // Fondo total negro
-    surface = DarkSurface,        // Tarjetas gris oscuro (NO negro puro)
-    surfaceVariant = DarkSurface, // Inputs también gris oscuro
-
-    onPrimary = Black,            // Texto sobre botón neón -> Negro
-    onSecondary = Black,
-    onBackground = White,         // Texto sobre fondo negro -> Blanco
-    onSurface = White,            // Texto sobre tarjetas -> Blanco
-    onSurfaceVariant = ElectricTeal, // Iconos/Labels -> Neón
-
-    outline = ElectricTeal,        // Bordes de inputs -> Neón
-    error= Color(0xFFCF6679)
-)
-
-// Paleta Clara (Light Mode) ☀️
+// Paleta Clara (Modo Claro) ☀️
 private val LightColorScheme = lightColorScheme(
     primary = DarkTeal,
     primaryContainer = ElectricTeal,
     secondary = DeepOcean,
 
     background = White,
-    surface = White,              // Tarjetas Blancas
-    surfaceVariant = White,       // Inputs Blancos
+    surface = White,
+    surfaceVariant = White,
 
     surfaceTint = White,
 
@@ -43,10 +23,30 @@ private val LightColorScheme = lightColorScheme(
     onSecondary = White,
     onBackground = Black,
     onSurface = Black,
-    onSurfaceVariant = DeepOcean, // Iconos oscuros
+    onSurfaceVariant = DeepOcean,
 
-    outline = DarkTeal,            // Bordes oscuros
+    outline = DarkTeal,
     error = Color(0xFFB00020)
+)
+
+// Paleta Oscura (Modo Oscuro) 🌙
+private val DarkColorScheme = darkColorScheme(
+    primary = ElectricTeal,
+    primaryContainer = ElectricTeal,
+    secondary = ElectricTeal,
+
+    background = Black,
+    surface = DarkSurface,
+    surfaceVariant = DarkSurface,
+
+    onPrimary = Black,
+    onSecondary = Black,
+    onBackground = White,
+    onSurface = White,
+    onSurfaceVariant = ElectricTeal,
+
+    outline = ElectricTeal,
+    error= Color(0xFFCF6679)
 )
 
 @Composable

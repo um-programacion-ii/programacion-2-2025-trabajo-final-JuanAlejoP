@@ -70,8 +70,7 @@ fun MapaAsientosScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-            else if (errorMessage != null) {
+            } else if (errorMessage != null) {
                 Column(
                     modifier = Modifier.align(Alignment.Center).padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -84,16 +83,13 @@ fun MapaAsientosScreen(
                         Text("Volver e intentar de nuevo")
                     }
                 }
-            }
-            else if (eventoState != null) {
+            } else if (eventoState != null) {
                 val evento = eventoState!!
 
-                // Leemos dimensiones reales
                 val filas = evento.filaAsientos ?: 10
                 val columnas = evento.columnAsientos ?: 10
                 val totalAsientos = filas * columnas
 
-                // Mapa de búsqueda rápida
                 val ocupadosMap = remember(evento.asientos) {
                     evento.asientos?.associateBy { "${it.fila}-${it.columna}" } ?: emptyMap()
                 }
@@ -110,7 +106,6 @@ fun MapaAsientosScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        // 🆕 AGREGADO: Esto permite que la grilla ocupe el espacio disponible y habilita el scroll
                         modifier = Modifier.weight(1f)
                     ) {
                         items(totalAsientos) { index ->

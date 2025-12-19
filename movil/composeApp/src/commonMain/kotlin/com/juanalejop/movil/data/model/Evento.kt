@@ -10,15 +10,14 @@ data class Evento(
     val descripcion: String? = null,
     val fechaHora: String,
     val precio: Double,
-    val imagenUrl: String? = null, // Ya viene lleno!
-    val direccion: String? = null, // NUEVO
+    val imagenUrl: String? = null,
+    val direccion: String? = null,
 
     val filaAsientos: Int? = 10,
     val columnAsientos: Int? = 10,
 
     val asientos: List<Asiento>? = null,
 
-    // NUEVOS OBJETOS COMPLEJOS
     val eventoTipo: EventoTipo? = null,
     val integrantes: List<Integrante>? = null
 )

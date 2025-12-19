@@ -1,7 +1,6 @@
 package com.juanalejop.backend.service.dto.reserva;
 
 import java.io.Serializable;
-// import java.time.ZonedDateTime; <--- BORRAR O COMENTAR ESTO
 import java.util.List;
 
 public class SolicitudVentaDTO implements Serializable {
@@ -9,15 +8,10 @@ public class SolicitudVentaDTO implements Serializable {
     private Long eventoId;
     private Double precioVenta;
 
-    // --- CAMBIO AQUÍ: Usamos String para controlar el formato exacto ---
     private String fecha;
-    // ------------------------------------------------------------------
 
     private List<AsientoPersonaDTO> asientos;
 
-    // ... getters y setters de eventoId, precioVenta, asientos ...
-
-    // --- GETTERS Y SETTERS DE FECHA ACTUALIZADOS ---
     public String getFecha() {
         return fecha;
     }
@@ -25,10 +19,7 @@ public class SolicitudVentaDTO implements Serializable {
     public void setFecha(String fecha) {
         this.fecha = fecha;
     }
-    // -----------------------------------------------
 
-    // (El resto de la clase y AsientoPersonaDTO queda igual)
-    // ...
     public Long getEventoId() { return eventoId; }
     public void setEventoId(Long eventoId) { this.eventoId = eventoId; }
     public Double getPrecioVenta() { return precioVenta; }

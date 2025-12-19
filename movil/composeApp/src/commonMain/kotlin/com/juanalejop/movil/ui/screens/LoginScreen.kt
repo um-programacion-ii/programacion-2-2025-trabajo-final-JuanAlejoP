@@ -1,7 +1,7 @@
 package com.juanalejop.movil.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme // 🆕 Importante
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juanalejop.movil.data.network.AuthRepository
 import kotlinx.coroutines.launch
-import androidx.compose.ui.text.font.FontStyle // 🆕 No olvides importar esto
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
@@ -40,10 +40,9 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
     val scope = rememberCoroutineScope()
     val authRepository = remember { AuthRepository() }
 
-    // 🎨 DETECTAMOS EL MODO PARA EL DEGRADADO
     val isDark = isSystemInDarkTheme()
     val gradientTop = if (isDark) com.juanalejop.movil.ui.theme.DeepOcean else com.juanalejop.movil.ui.theme.SoftTeal
-    val gradientBottom = MaterialTheme.colorScheme.background // Black o White según el tema
+    val gradientBottom = MaterialTheme.colorScheme.background
 
     Box(
         modifier = Modifier
@@ -61,7 +60,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // LOGO
             Surface(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -71,7 +69,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.ConfirmationNumber,
                     contentDescription = null,
-                    // En Dark: Negro sobre Neón. En Light: Verde Oscuro sobre Neón.
                     tint = com.juanalejop.movil.ui.theme.DeepOcean,
                     modifier = Modifier.padding(24.dp).fillMaxSize()
                 )
@@ -95,9 +92,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // FORMULARIO
-            // 💡 ELIMINAMOS 'containerColor = Color.White'.
-            // Ahora usa el Theme: White en Light, DarkSurface en Dark.
             Card(
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 shape = RoundedCornerShape(12.dp),
@@ -136,7 +130,6 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 }
             }
 
-            // ... (Resto del código: error y botón, igual que antes) ...
             if (errorMessage != null) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {

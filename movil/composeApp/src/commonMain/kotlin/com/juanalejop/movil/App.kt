@@ -10,6 +10,7 @@ import com.juanalejop.movil.ui.screens.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.juanalejop.movil.ui.theme.AppTheme
+
 enum class CurrentScreen {
     LOGIN, HOME, DETALLE, MAPA, CARGA_DATOS, COMPRA_EXITOSA
 }
@@ -23,10 +24,7 @@ fun App() {
 
         var currentScreen by remember { mutableStateOf(CurrentScreen.LOGIN) }
         var selectedEventoId by remember { mutableStateOf<Long?>(null) }
-
-        // 🆕 VARIABLE NUEVA PARA EL TÍTULO
         var selectedEventoTitulo by remember { mutableStateOf("") }
-
         var asientosSeleccionados by remember { mutableStateOf<List<com.juanalejop.movil.data.model.Asiento>>(emptyList()) }
         var entradasCompradas by remember { mutableStateOf<List<AsientoPersona>>(emptyList()) }
 
@@ -42,7 +40,7 @@ fun App() {
                     },
                     onLogout = {
                         selectedEventoId = null
-                        selectedEventoTitulo = "" // Limpiamos título
+                        selectedEventoTitulo = ""
                         asientosSeleccionados = emptyList()
                         entradasCompradas = emptyList()
                         currentScreen = CurrentScreen.LOGIN
@@ -54,7 +52,6 @@ fun App() {
                     EventoDetalleScreen(
                         eventoId = selectedEventoId!!,
                         onBack = { currentScreen = CurrentScreen.HOME },
-                        // 🆕 CAPTURAMOS EL TÍTULO AQUÍ
                         onComprarClick = { titulo ->
                             selectedEventoTitulo = titulo
                             currentScreen = CurrentScreen.MAPA
@@ -62,7 +59,7 @@ fun App() {
                     )
                 }
             }
-            CurrentScreen.MAPA -> { /* (Sin cambios, igual que antes) */
+            CurrentScreen.MAPA -> {
                 if (selectedEventoId != null) {
                     MapaAsientosScreen(
                         eventoId = selectedEventoId!!,
@@ -86,7 +83,7 @@ fun App() {
                     )
                 }
             }
-            CurrentScreen.CARGA_DATOS -> { /* (Sin cambios, igual que antes) */
+            CurrentScreen.CARGA_DATOS -> {
                 CargaDatosScreen(
                     asientos = asientosSeleccionados,
                     onBack = { currentScreen = CurrentScreen.MAPA },
@@ -112,7 +109,6 @@ fun App() {
                 )
             }
             CurrentScreen.COMPRA_EXITOSA -> {
-                // 🆕 PASAMOS EL TÍTULO Y LA LISTA
                 CompraExitosaScreen(
                     eventoTitulo = selectedEventoTitulo,
                     entradas = entradasCompradas,

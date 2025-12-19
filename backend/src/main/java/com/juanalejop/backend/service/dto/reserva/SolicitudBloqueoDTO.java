@@ -6,13 +6,11 @@ public class SolicitudBloqueoDTO {
     private Long eventoId;
     private List<AsientoSimpleDTO> asientos;
 
-    // Getters y Setters
     public Long getEventoId() { return eventoId; }
     public void setEventoId(Long eventoId) { this.eventoId = eventoId; }
     public List<AsientoSimpleDTO> getAsientos() { return asientos; }
     public void setAsientos(List<AsientoSimpleDTO> asientos) { this.asientos = asientos; }
 
-    // Clase interna auxiliar para no crear mil archivos
     public static class AsientoSimpleDTO {
         private int fila;
         private int columna;

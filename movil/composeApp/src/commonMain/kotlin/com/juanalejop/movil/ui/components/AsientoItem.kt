@@ -20,7 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juanalejop.movil.data.model.Asiento
-// Importa tus colores si es necesario, o usa los hardcoded abajo para mantener consistencia con lo hablado
 
 @Composable
 fun AsientoItem(
@@ -31,32 +30,25 @@ fun AsientoItem(
     val isDark = isSystemInDarkTheme()
     val isClickable = asiento.estado == "Libre"
 
-    // --- LÓGICA DE COLOR DE FONDO (Igual que antes) ---
     val backgroundColor = if (isDark) {
         when {
-            asiento.estado == "Vendido" -> Color(0xFFB71C1C) // Rojo oscuro
+            asiento.estado == "Vendido" -> Color(0xFFB71C1C)
             asiento.estado == "Bloqueado" -> Color.DarkGray
-            isSelected -> MaterialTheme.colorScheme.primary // Electric Teal
-            else -> Color(0xFF1B5E20) // Verde oscuro
+            isSelected -> MaterialTheme.colorScheme.primary
+            else -> Color(0xFF1B5E20)
         }
     } else {
-        // Tu lógica original para modo claro
         when {
             asiento.estado == "Vendido" -> Color.Red.copy(alpha = 0.5f)
             asiento.estado == "Bloqueado" -> Color.Gray.copy(alpha = 0.5f)
-            isSelected -> MaterialTheme.colorScheme.primary // Dark Teal
+            isSelected -> MaterialTheme.colorScheme.primary
             else -> Color.Green.copy(alpha = 0.3f)
         }
     }
 
-    // --- LÓGICA DE COLOR DE TEXTO (MEJORADA) 🎨 ---
     val contentColor = if (isDark) {
-        // En Dark Mode:
-        // Si está seleccionado (fondo Teal brillante) -> Texto NEGRO
-        // Si no (fondo Rojo/Verde oscuro) -> Texto BLANCO
         if (isSelected) Color.Black else Color.White
     } else {
-        // En Light Mode: Siempre negro (o gris oscuro)
         Color.Black
     }
 

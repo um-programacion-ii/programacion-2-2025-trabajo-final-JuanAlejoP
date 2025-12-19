@@ -16,7 +16,6 @@ object TokenManager {
         jwt = token
     }
 
-    // 🆕 NUEVO MÉTODO
     fun clearToken() {
         jwt = null
     }
@@ -41,7 +40,6 @@ class AuthRepository {
         }
     }
 
-    // 🆕 NUEVO MÉTODO
     fun logout() {
         TokenManager.clearToken()
     }

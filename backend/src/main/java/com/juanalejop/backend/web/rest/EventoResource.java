@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +48,6 @@ public class EventoResource {
     private final EventoRepository eventoRepository;
     private final ProxyService proxyService;
 
-    // Inyectamos Jackson para procesar los JSON complejos
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${integration.proxy.api-key}")
@@ -61,40 +59,36 @@ public class EventoResource {
         this.proxyService = proxyService;
     }
 
-    // --- 🆕 NUEVO ENDPOINT INTERNO (Llamado por el Proxy cuando Kafka avisa) ---
+    /**
+     * Endpoint interno llamado por el Proxy para forzar la sincronización.
+     */
     @PostMapping("/sincronizar")
     public ResponseEntity<Void> forzarSincronizacion(
         @RequestHeader(value = "X-API-KEY", required = false) String apiKeyRecibida
     ) {
-        // 🛡️ VALIDACIÓN USANDO LA KEY CONFIGURADA
         if (apiKeyRecibida == null || !apiKeyRecibida.equals(internalApiKey)) {
-            LOG.warn("⛔ Intento de acceso denegado. Key recibida: " + apiKeyRecibida);
+            LOG.warn("Intento de acceso denegado al endpoint de sincronización. Key recibida: {}", apiKeyRecibida);
             return ResponseEntity.status(401).build();
         }
 
-        LOG.info("🔄 Sincronización autorizada por Proxy.");
+        LOG.info("Sincronización autorizada solicitada por Proxy.");
         sincronizarConCatedra();
         return ResponseEntity.ok().build();
     }
 
-    // --- MÉTODO REFACTORIZADO DE SINCRONIZACIÓN (UPSERT con DTOs) ---
     private void sincronizarConCatedra() {
         try {
-            LOG.info("⬇️ Descargando eventos frescos desde el Proxy...");
+            LOG.info("Iniciando descarga de eventos desde el Proxy...");
             List<Map<String, Object>> eventosExternos = proxyService.obtenerListaEventos();
 
             if (eventosExternos != null && !eventosExternos.isEmpty()) {
-                // Traemos entidades locales solo para chequear IDs y existencia de forma eficiente
                 List<Evento> eventosLocales = eventoRepository.findAll();
 
                 for (Map<String, Object> dato : eventosExternos) {
                     try {
                         Long idCatedra = Long.valueOf(dato.get("id").toString());
-
-                        // Creamos un DTO para guardar
                         EventoDTO eventoDTO = new EventoDTO();
 
-                        // Buscamos si ya existe localmente para preservar su ID (Update)
                         Optional<Evento> existente = eventosLocales.stream()
                             .filter(e -> e.getIdCatedra() != null && e.getIdCatedra().equals(idCatedra))
                             .findFirst();
@@ -103,28 +97,24 @@ public class EventoResource {
                             eventoDTO.setId(existente.get().getId());
                         }
 
-                        // --- MAPEO DE CAMPOS (Map -> DTO) ---
+                        // Mapeo de campos básicos
                         eventoDTO.setIdCatedra(idCatedra);
                         eventoDTO.setTitulo((String) dato.get("titulo"));
                         eventoDTO.setDescripcion((String) dato.get("descripcion"));
                         eventoDTO.setResumen((String) dato.get("resumen"));
 
-                        // OJO: El proxy manda "imagen", el DTO espera "imagenUrl"
                         if (dato.get("imagen") != null) {
                             eventoDTO.setImagenUrl((String) dato.get("imagen"));
                         }
 
-                        // Dirección
                         if (dato.get("direccion") != null) {
                             eventoDTO.setDireccion((String) dato.get("direccion"));
                         }
 
-                        // Precio (puede venir como 'precio' o 'precioEntrada')
                         Object precioObj = dato.get("precioEntrada");
                         if (precioObj == null) precioObj = dato.get("precio");
                         eventoDTO.setPrecio(precioObj != null ? Double.valueOf(precioObj.toString()) : 0.0);
 
-                        // Fecha
                         Object fechaObj = dato.get("fecha");
                         if (fechaObj != null) {
                             try {
@@ -136,25 +126,21 @@ public class EventoResource {
                             eventoDTO.setFechaHora(ZonedDateTime.now());
                         }
 
-                        // Dimensiones
                         Object filasObj = dato.get("filaAsientos");
                         eventoDTO.setFilaAsientos(filasObj != null ? Integer.valueOf(filasObj.toString()) : 10);
                         Object colObj = dato.get("columnAsientos");
                         eventoDTO.setColumnAsientos(colObj != null ? Integer.valueOf(colObj.toString()) : 10);
 
-                        // --- 🆕 MAPEO DE OBJETOS COMPLEJOS ---
-
-                        // 1. EventoTipo
+                        // Mapeo de objetos complejos (Tipo e Integrantes)
                         if (dato.get("eventoTipo") != null) {
                             try {
                                 EventoTipoDTO tipo = objectMapper.convertValue(dato.get("eventoTipo"), EventoTipoDTO.class);
                                 eventoDTO.setEventoTipo(tipo);
                             } catch (Exception e) {
-                                LOG.warn("⚠️ No se pudo mapear eventoTipo: " + e.getMessage());
+                                LOG.warn("No se pudo mapear eventoTipo: {}", e.getMessage());
                             }
                         }
 
-                        // 2. Integrantes
                         if (dato.get("integrantes") != null) {
                             try {
                                 List<IntegranteDTO> integrantes = objectMapper.convertValue(
@@ -163,29 +149,24 @@ public class EventoResource {
                                 );
                                 eventoDTO.setIntegrantes(integrantes);
                             } catch (Exception e) {
-                                LOG.warn("⚠️ No se pudo mapear integrantes: " + e.getMessage());
+                                LOG.warn("No se pudo mapear integrantes: {}", e.getMessage());
                             }
                         }
 
-                        // Guardamos usando el SERVICE para que active el MAPPER
-                        // (El Mapper se encargará de convertir integrantes a JSON String)
                         eventoService.save(eventoDTO);
 
                     } catch (Exception innerEx) {
-                        LOG.error("⚠️ Error procesando evento ID Catedra " + dato.get("id") + ": " + innerEx.getMessage());
-                        innerEx.printStackTrace();
+                        LOG.error("Error procesando evento ID Catedra {}: {}", dato.get("id"), innerEx.getMessage());
                     }
                 }
-                LOG.info("✅ Sincronización completada. Base de datos actualizada.");
+                LOG.info("Sincronización completada. Base de datos actualizada.");
             } else {
-                LOG.warn("⚠️ El Proxy devolvió una lista vacía.");
+                LOG.warn("El Proxy devolvió una lista vacía de eventos.");
             }
         } catch (Exception e) {
-            LOG.error("❌ Falló la sincronización con Proxy: " + e.getMessage());
+            LOG.error("Falló la sincronización con Proxy: {}", e.getMessage());
         }
     }
-
-    // --- MÉTODOS REST ESTÁNDAR ---
 
     @PostMapping("")
     public ResponseEntity<EventoDTO> createEvento(@Valid @RequestBody EventoDTO eventoDTO) throws URISyntaxException {
@@ -219,9 +200,8 @@ public class EventoResource {
     public ResponseEntity<List<EventoDTO>> getAllEventos(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
         LOG.debug("REST request to get a page of Eventos");
 
-        // Si la base está vacía al inicio, sincronizamos automáticamente
         if (eventoRepository.count() == 0) {
-            LOG.info("📭 Base de datos vacía al inicio. Sincronizando...");
+            LOG.info("Base de datos vacía. Iniciando sincronización automática...");
             sincronizarConCatedra();
         }
 

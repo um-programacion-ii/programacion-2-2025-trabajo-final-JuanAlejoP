@@ -23,7 +23,7 @@ import com.juanalejop.movil.data.model.AsientoPersona
 
 @Composable
 fun CompraExitosaScreen(
-    eventoTitulo: String, // 🆕 Título del evento
+    eventoTitulo: String,
     entradas: List<AsientoPersona>,
     onVolverInicio: () -> Unit
 ) {
@@ -55,7 +55,6 @@ fun CompraExitosaScreen(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            // 🆕 MOSTRAMOS EL EVENTO
             Text(
                 text = eventoTitulo,
                 style = MaterialTheme.typography.titleMedium,
@@ -102,7 +101,6 @@ fun CompraExitosaScreen(
     }
 }
 
-// 🆕 Item simplificado sin nombres
 @Composable
 fun TicketItemSimple(entrada: AsientoPersona) {
     Card(
@@ -127,7 +125,6 @@ fun TicketItemSimple(entrada: AsientoPersona) {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Solo mostramos la ubicación
             Text(
                 text = "Fila ${entrada.fila} - Columna ${entrada.columna}",
                 style = MaterialTheme.typography.titleMedium,

@@ -16,19 +16,15 @@ public interface EventoMapper extends EntityMapper<EventoDTO, Evento> {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    // 1. De DTO a Entidad (Guardar en BD)
     @Mapping(target = "tipoNombre", source = "eventoTipo.nombre")
     @Mapping(target = "tipoDescripcion", source = "eventoTipo.descripcion")
     @Mapping(target = "integrantesJson", expression = "java(mapIntegrantesToString(dto.getIntegrantes()))")
     Evento toEntity(EventoDTO dto);
 
-    // 2. De Entidad a DTO (Leer de BD)
     @Mapping(target = "eventoTipo", expression = "java(mapToEventoTipo(entity))")
     @Mapping(target = "integrantes", expression = "java(mapStringToIntegrantes(entity.getIntegrantesJson()))")
-    @Mapping(target = "asientos", ignore = true) // Los asientos vienen de Proxy/Redis, no de la BD Evento
+    @Mapping(target = "asientos", ignore = true)
     EventoDTO toDto(Evento entity);
-
-    // MÉTODOS AUXILIARES (Lógica de conversión manual)
 
     default String mapIntegrantesToString(List<IntegranteDTO> integrantes) {
         if (integrantes == null) return null;

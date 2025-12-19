@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 fun EventoDetalleScreen(
     eventoId: Long,
     onBack: () -> Unit,
-    onComprarClick: (String) -> Unit // 🆕 AHORA RECIBE EL TÍTULO
+    onComprarClick: (String) -> Unit
 ) {
     var evento by remember { mutableStateOf<Evento?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -63,7 +63,6 @@ fun EventoDetalleScreen(
         bottomBar = {
             if (evento != null) {
                 Button(
-                    // 🆕 PASAMOS EL TÍTULO AL HACER CLICK
                     onClick = { onComprarClick(evento!!.titulo) },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -86,7 +85,6 @@ fun EventoDetalleScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // 1. BANNER (Con lógica Dark Mode)
                     if (!item.imagenUrl.isNullOrEmpty()) {
                         val placeholderColor = if (isSystemInDarkTheme())
                             com.juanalejop.movil.ui.theme.PlaceholderDark

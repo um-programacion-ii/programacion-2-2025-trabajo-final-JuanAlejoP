@@ -1,20 +1,24 @@
 package com.juanalejop.backend.service;
 
 import com.juanalejop.backend.service.dto.proxy.EventoAsientosProxyDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
-import java.util.Optional;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 public class ProxyService {
 
+    private final Logger log = LoggerFactory.getLogger(ProxyService.class);
     private final RestTemplate restTemplate;
 
     @Value("${integration.proxy.url}")
@@ -48,13 +52,13 @@ public class ProxyService {
             return Optional.empty();
 
         } catch (HttpClientErrorException.NotFound e) {
-            // 🟢 COMPORTAMIENTO ESPERADO: Si Redis no tiene el evento, asumimos que está todo libre.
-            System.out.println("ℹ️ Evento " + eventoId + ": Sin reservas (404). Retornando mapa libre.");
+            // Si Redis no tiene el evento (404), asumimos que no hay reservas y retornamos una lista vacía.
+            log.debug("Evento {}: Sin reservas (404). Retornando mapa libre.", eventoId);
             EventoAsientosProxyDto dtoVacio = new EventoAsientosProxyDto();
             dtoVacio.setAsientos(new ArrayList<>());
             return Optional.of(dtoVacio);
         } catch (Exception e) {
-            System.err.println("⚠️ Error obteniendo asientos del Proxy: " + e.getMessage());
+            log.error("Error obteniendo asientos del Proxy para evento {}: {}", eventoId, e.getMessage());
             return Optional.empty();
         }
     }
@@ -73,7 +77,6 @@ public class ProxyService {
             headers.set("X-API-KEY", proxyApiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // CORREGIDO: Eliminada la variable 'entity' que no se usaba
             HttpEntity<Object> entityConBody = new HttpEntity<>(payload, headers);
 
             String url = proxyUrl + endpoint;
@@ -82,7 +85,7 @@ public class ProxyService {
 
             return response.getStatusCode() == HttpStatus.OK;
         } catch (Exception e) {
-            System.err.println("❌ Error comunicando con Proxy (" + endpoint + "): " + e.getMessage());
+            log.error("Error comunicando con Proxy ({}): {}", endpoint, e.getMessage());
             return false;
         }
     }
@@ -106,8 +109,8 @@ public class ProxyService {
                 return (List<Map<String, Object>>) response.getBody();
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Error sincronizando eventos: " + e.getMessage());
+            log.error("Error sincronizando eventos: {}", e.getMessage());
         }
-        return List.of(); // Devuelve lista inmutable vacía si falla
+        return List.of();
     }
 }

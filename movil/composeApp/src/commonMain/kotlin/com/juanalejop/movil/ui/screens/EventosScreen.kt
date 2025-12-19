@@ -7,13 +7,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.BrokenImage // 🆕 Ícono para error
-import androidx.compose.material.icons.filled.Image // 🆕 Ícono para carga (opcional)
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.rememberVectorPainter // 🆕 Necesario para Coil
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,7 +28,6 @@ fun EventosScreen(
     onEventoClick: (Long) -> Unit,
     onLogout: () -> Unit
 ) {
-    // ... (Este bloque principal no cambia, es igual al tuyo) ...
     var eventos by remember { mutableStateOf<List<Evento>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -125,9 +123,7 @@ fun EventoCard(evento: Evento, onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
 
-            // 1. MINIATURA
             if (!evento.imagenUrl.isNullOrEmpty()) {
-                // 🎨 LÓGICA DE COLOR: Si es Dark, usa el oscuro. Si es Light, el suave.
                 val placeholderColor = if (isSystemInDarkTheme())
                     com.juanalejop.movil.ui.theme.PlaceholderDark
                 else
@@ -136,7 +132,7 @@ fun EventoCard(evento: Evento, onClick: () -> Unit) {
                 Card(
                     shape = MaterialTheme.shapes.small,
                     modifier = Modifier.size(80.dp),
-                    colors = CardDefaults.cardColors(containerColor = placeholderColor) // USAR VARIABLE
+                    colors = CardDefaults.cardColors(containerColor = placeholderColor)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         AsyncImage(
@@ -151,10 +147,7 @@ fun EventoCard(evento: Evento, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(16.dp))
             }
 
-            // 2. TEXTOS (Igual que antes)
             Column(modifier = Modifier.weight(1f)) {
-
-                // TIPO (Badge)
                 evento.eventoTipo?.let { tipo ->
                     Text(
                         text = tipo.nombre.uppercase(),
@@ -165,7 +158,6 @@ fun EventoCard(evento: Evento, onClick: () -> Unit) {
                     Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                // TÍTULO
                 Text(
                     text = evento.titulo,
                     style = MaterialTheme.typography.titleMedium,
@@ -173,7 +165,6 @@ fun EventoCard(evento: Evento, onClick: () -> Unit) {
                     maxLines = 2
                 )
 
-                // PRECIO
                 Text(
                     text = "$${evento.precio}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -181,7 +172,6 @@ fun EventoCard(evento: Evento, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.secondary
                 )
 
-                // RESUMEN
                 if (!evento.resumen.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(

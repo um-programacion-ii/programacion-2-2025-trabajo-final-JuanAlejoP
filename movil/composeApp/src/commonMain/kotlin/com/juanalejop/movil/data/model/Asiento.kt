@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class Asiento(
     val fila: Int,
     val columna: Int,
-    val estado: String // "Libre", "Vendido", "Bloqueado"
+    val estado: String
 )

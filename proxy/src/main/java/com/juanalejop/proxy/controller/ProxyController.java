@@ -61,7 +61,6 @@ public class ProxyController {
         return exito ? ResponseEntity.ok("Venta enviada") : ResponseEntity.status(500).body("Error en cátedra");
     }
 
-    // --- Endpoint Resumido (existente) ---
     @GetMapping("/eventos")
     public ResponseEntity<?> obtenerEventosCatedra(
             @RequestHeader(value = "X-API-KEY", required = false) String apiKeyRecibida) {
@@ -71,7 +70,6 @@ public class ProxyController {
         return catedraService.getEventosResumidos();
     }
 
-    // --- Endpoint Completo (NUEVO) ---
     @GetMapping("/eventos-full")
     public ResponseEntity<?> obtenerEventosCompletos(
             @RequestHeader(value = "X-API-KEY", required = false) String apiKeyRecibida) {

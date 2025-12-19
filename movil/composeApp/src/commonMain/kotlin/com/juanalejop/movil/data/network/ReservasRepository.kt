@@ -26,7 +26,6 @@ class ReservasRepository {
         return try {
             val token = TokenManager.jwt ?: throw Exception("No hay sesión activa")
             
-            // Si el servidor devuelve 200 OK, Ktor nos da el cuerpo. Si es error, tira excepción.
             val response: String = client.post(url) {
                 header(HttpHeaders.Authorization, "Bearer $token")
                 contentType(ContentType.Application.Json)
