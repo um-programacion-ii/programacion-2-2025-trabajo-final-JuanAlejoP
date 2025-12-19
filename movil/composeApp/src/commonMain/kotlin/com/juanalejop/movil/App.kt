@@ -23,8 +23,12 @@ fun App() {
 
         var currentScreen by remember { mutableStateOf(CurrentScreen.LOGIN) }
         var selectedEventoId by remember { mutableStateOf<Long?>(null) }
+
+        // 🆕 VARIABLE NUEVA PARA EL TÍTULO
+        var selectedEventoTitulo by remember { mutableStateOf("") }
+
         var asientosSeleccionados by remember { mutableStateOf<List<com.juanalejop.movil.data.model.Asiento>>(emptyList()) }
-        var cantidadEntradasCompradas by remember { mutableStateOf(0) }
+        var entradasCompradas by remember { mutableStateOf<List<AsientoPersona>>(emptyList()) }
 
         when (currentScreen) {
             CurrentScreen.LOGIN -> {
@@ -38,7 +42,9 @@ fun App() {
                     },
                     onLogout = {
                         selectedEventoId = null
+                        selectedEventoTitulo = "" // Limpiamos título
                         asientosSeleccionados = emptyList()
+                        entradasCompradas = emptyList()
                         currentScreen = CurrentScreen.LOGIN
                     }
                 )
@@ -48,11 +54,15 @@ fun App() {
                     EventoDetalleScreen(
                         eventoId = selectedEventoId!!,
                         onBack = { currentScreen = CurrentScreen.HOME },
-                        onComprarClick = { currentScreen = CurrentScreen.MAPA }
+                        // 🆕 CAPTURAMOS EL TÍTULO AQUÍ
+                        onComprarClick = { titulo ->
+                            selectedEventoTitulo = titulo
+                            currentScreen = CurrentScreen.MAPA
+                        }
                     )
                 }
             }
-            CurrentScreen.MAPA -> {
+            CurrentScreen.MAPA -> { /* (Sin cambios, igual que antes) */
                 if (selectedEventoId != null) {
                     MapaAsientosScreen(
                         eventoId = selectedEventoId!!,
@@ -63,10 +73,8 @@ fun App() {
                                     eventoId = selectedEventoId!!,
                                     asientos = seleccion.map { AsientoSimple(it.fila, it.columna) }
                                 )
-                                println("Enviando bloqueo...")
                                 reservasRepository.bloquearAsientos(solicitud)
                                     .onSuccess {
-                                        println("Bloqueo OK. Pasando a carga de datos.")
                                         asientosSeleccionados = seleccion
                                         currentScreen = CurrentScreen.CARGA_DATOS
                                     }
@@ -78,7 +86,7 @@ fun App() {
                     )
                 }
             }
-            CurrentScreen.CARGA_DATOS -> {
+            CurrentScreen.CARGA_DATOS -> { /* (Sin cambios, igual que antes) */
                 CargaDatosScreen(
                     asientos = asientosSeleccionados,
                     onBack = { currentScreen = CurrentScreen.MAPA },
@@ -87,17 +95,13 @@ fun App() {
                             val listaAsientosVenta = mapaDatos.map { (asiento, nombre) ->
                                 AsientoPersona(asiento.fila, asiento.columna, nombre)
                             }
-
                             val solicitud = SolicitudVenta(
                                 eventoId = selectedEventoId!!,
                                 asientos = listaAsientosVenta
                             )
-
-                            println("Enviando venta...")
                             reservasRepository.realizarVenta(solicitud)
                                 .onSuccess {
-                                    println("¡VENTA EXITOSA!")
-                                    cantidadEntradasCompradas = asientosSeleccionados.size
+                                    entradasCompradas = listaAsientosVenta
                                     currentScreen = CurrentScreen.COMPRA_EXITOSA
                                 }
                                 .onFailure {
@@ -108,12 +112,15 @@ fun App() {
                 )
             }
             CurrentScreen.COMPRA_EXITOSA -> {
+                // 🆕 PASAMOS EL TÍTULO Y LA LISTA
                 CompraExitosaScreen(
-                    cantidadEntradas = cantidadEntradasCompradas,
+                    eventoTitulo = selectedEventoTitulo,
+                    entradas = entradasCompradas,
                     onVolverInicio = {
                         selectedEventoId = null
+                        selectedEventoTitulo = ""
                         asientosSeleccionados = emptyList()
-                        cantidadEntradasCompradas = 0
+                        entradasCompradas = emptyList()
                         currentScreen = CurrentScreen.HOME
                     }
                 )

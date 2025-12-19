@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.juanalejop.movil.data.network.AuthRepository
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.font.FontStyle // 🆕 No olvides importar esto
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit) {
@@ -79,7 +80,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Tiqueto",
+                text = "TiqueTo",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -88,7 +89,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             Text(
                 text = "Del ticket al evento",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontStyle = FontStyle.Italic
             )
 
             Spacer(modifier = Modifier.height(48.dp))

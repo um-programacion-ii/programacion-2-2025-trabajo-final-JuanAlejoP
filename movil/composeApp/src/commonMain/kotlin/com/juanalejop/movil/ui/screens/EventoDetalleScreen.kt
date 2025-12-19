@@ -1,10 +1,10 @@
 package com.juanalejop.movil.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.BrokenImage
@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 fun EventoDetalleScreen(
     eventoId: Long,
     onBack: () -> Unit,
-    onComprarClick: () -> Unit
+    onComprarClick: (String) -> Unit // 🆕 AHORA RECIBE EL TÍTULO
 ) {
     var evento by remember { mutableStateOf<Evento?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -52,7 +52,7 @@ fun EventoDetalleScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(evento?.titulo ?: "Cargando...") }, // Título dinámico
+                title = { Text(evento?.titulo ?: "Cargando...") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -63,7 +63,8 @@ fun EventoDetalleScreen(
         bottomBar = {
             if (evento != null) {
                 Button(
-                    onClick = onComprarClick,
+                    // 🆕 PASAMOS EL TÍTULO AL HACER CLICK
+                    onClick = { onComprarClick(evento!!.titulo) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -78,16 +79,15 @@ fun EventoDetalleScreen(
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (evento != null) {
-                val item = evento!! // Smart cast helper
+                val item = evento!!
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // 1. BANNER DE IMAGEN 🖼️
+                    // 1. BANNER (Con lógica Dark Mode)
                     if (!item.imagenUrl.isNullOrEmpty()) {
-                        // 🎨 LÓGICA DE COLOR
                         val placeholderColor = if (isSystemInDarkTheme())
                             com.juanalejop.movil.ui.theme.PlaceholderDark
                         else
@@ -97,7 +97,7 @@ fun EventoDetalleScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(240.dp)
-                                .background(placeholderColor), // USAR VARIABLE
+                                .background(placeholderColor),
                             contentAlignment = Alignment.Center
                         ) {
                             AsyncImage(
@@ -112,7 +112,6 @@ fun EventoDetalleScreen(
 
                     Column(modifier = Modifier.padding(16.dp)) {
 
-                        // 2. TIPO Y FECHA
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             item.eventoTipo?.let { tipo ->
                                 SuggestionChip(
@@ -121,7 +120,6 @@ fun EventoDetalleScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                             }
-                            // Formato rápido de fecha (solo los primeros 10 chars: YYYY-MM-DD)
                             AssistChip(
                                 onClick = {},
                                 label = { Text(item.fechaHora.take(10)) },
@@ -131,7 +129,6 @@ fun EventoDetalleScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // 3. TÍTULO Y PRECIO
                         Text(item.titulo, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Text(
                             "$${item.precio}",
@@ -140,7 +137,6 @@ fun EventoDetalleScreen(
                             fontWeight = FontWeight.Bold
                         )
 
-                        // 4. DIRECCIÓN 📍
                         if (!item.direccion.isNullOrEmpty()) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Row(verticalAlignment = Alignment.Top) {
@@ -152,12 +148,10 @@ fun EventoDetalleScreen(
 
                         Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-                        // 5. DESCRIPCIÓN
                         Text("Sobre el evento", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(item.descripcion ?: "Sin descripción disponible.", style = MaterialTheme.typography.bodyMedium)
 
-                        // 6. INTEGRANTES / ELENCO 🎭
                         if (!item.integrantes.isNullOrEmpty()) {
                             Spacer(modifier = Modifier.height(24.dp))
                             Text("Presentadores", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -175,8 +169,6 @@ fun EventoDetalleScreen(
                                 )
                             }
                         }
-
-                        // Espacio extra al final para que no tape el botón flotante
                         Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
