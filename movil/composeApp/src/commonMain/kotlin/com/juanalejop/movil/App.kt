@@ -1,22 +1,17 @@
 package com.juanalejop.movil
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import com.juanalejop.movil.data.model.AsientoPersona
 import com.juanalejop.movil.data.model.AsientoSimple
 import com.juanalejop.movil.data.model.SolicitudBloqueo
 import com.juanalejop.movil.data.model.SolicitudVenta
 import com.juanalejop.movil.data.network.ReservasRepository
-import com.juanalejop.movil.ui.screens.CargaDatosScreen
-import com.juanalejop.movil.ui.screens.EventoDetalleScreen
-import com.juanalejop.movil.ui.screens.EventosScreen
-import com.juanalejop.movil.ui.screens.LoginScreen
-import com.juanalejop.movil.ui.screens.MapaAsientosScreen
+import com.juanalejop.movil.ui.screens.*
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.juanalejop.movil.ui.theme.AppTheme
 enum class CurrentScreen {
-    LOGIN, HOME, DETALLE, MAPA, CARGA_DATOS
+    LOGIN, HOME, DETALLE, MAPA, CARGA_DATOS, COMPRA_EXITOSA
 }
 
 @Composable
@@ -29,23 +24,21 @@ fun App() {
         var currentScreen by remember { mutableStateOf(CurrentScreen.LOGIN) }
         var selectedEventoId by remember { mutableStateOf<Long?>(null) }
         var asientosSeleccionados by remember { mutableStateOf<List<com.juanalejop.movil.data.model.Asiento>>(emptyList()) }
+        var cantidadEntradasCompradas by remember { mutableStateOf(0) }
 
         when (currentScreen) {
             CurrentScreen.LOGIN -> {
                 LoginScreen(onLoginSuccess = { currentScreen = CurrentScreen.HOME })
             }
             CurrentScreen.HOME -> {
-                // 🆕 ACTUALIZACIÓN ISSUE 7.1: Agregamos el callback onLogout
                 EventosScreen(
                     onEventoClick = { id ->
                         selectedEventoId = id
                         currentScreen = CurrentScreen.DETALLE
                     },
                     onLogout = {
-                        // Limpiamos estados por seguridad
                         selectedEventoId = null
                         asientosSeleccionados = emptyList()
-                        // Volvemos a la pantalla de Login
                         currentScreen = CurrentScreen.LOGIN
                     }
                 )
@@ -104,12 +97,24 @@ fun App() {
                             reservasRepository.realizarVenta(solicitud)
                                 .onSuccess {
                                     println("¡VENTA EXITOSA!")
-                                    currentScreen = CurrentScreen.HOME
+                                    cantidadEntradasCompradas = asientosSeleccionados.size
+                                    currentScreen = CurrentScreen.COMPRA_EXITOSA
                                 }
                                 .onFailure {
                                     println("Error Venta: ${it.message}")
                                 }
                         }
+                    }
+                )
+            }
+            CurrentScreen.COMPRA_EXITOSA -> {
+                CompraExitosaScreen(
+                    cantidadEntradas = cantidadEntradasCompradas,
+                    onVolverInicio = {
+                        selectedEventoId = null
+                        asientosSeleccionados = emptyList()
+                        cantidadEntradasCompradas = 0
+                        currentScreen = CurrentScreen.HOME
                     }
                 )
             }
