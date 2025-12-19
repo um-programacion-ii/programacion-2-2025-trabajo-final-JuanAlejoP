@@ -6,13 +6,10 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.MediaType;
-
+import org.springframework.web.client.HttpClientErrorException;
 import java.util.Optional;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.web.client.HttpClientErrorException;
 import java.util.ArrayList;
 
 @Service
@@ -51,10 +48,14 @@ public class ProxyService {
             return Optional.empty();
 
         } catch (HttpClientErrorException.NotFound e) {
+            // 🟢 COMPORTAMIENTO ESPERADO: Si Redis no tiene el evento, asumimos que está todo libre.
             System.out.println("ℹ️ Evento " + eventoId + ": Sin reservas (404). Retornando mapa libre.");
             EventoAsientosProxyDto dtoVacio = new EventoAsientosProxyDto();
-            dtoVacio.setAsientos(new java.util.ArrayList<>());
+            dtoVacio.setAsientos(new ArrayList<>());
             return Optional.of(dtoVacio);
+        } catch (Exception e) {
+            System.err.println("⚠️ Error obteniendo asientos del Proxy: " + e.getMessage());
+            return Optional.empty();
         }
     }
 
@@ -72,7 +73,7 @@ public class ProxyService {
             headers.set("X-API-KEY", proxyApiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<Object> entity = new HttpEntity<>(headers); // Ojo: en tu codigo original usaste entity(payload, headers) aqui. Corrección abajo.
+            // CORREGIDO: Eliminada la variable 'entity' que no se usaba
             HttpEntity<Object> entityConBody = new HttpEntity<>(payload, headers);
 
             String url = proxyUrl + endpoint;
@@ -86,14 +87,12 @@ public class ProxyService {
         }
     }
 
-    // --- AQUÍ ESTÁ EL CAMBIO CLAVE ---
     public List<Map<String, Object>> obtenerListaEventos() {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-API-KEY", proxyApiKey);
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
-            // CAMBIO: Ahora pedimos la versión FULL al Proxy para tener filas y columnas
             String url = proxyUrl + "/eventos-full";
 
             ResponseEntity<List> response = restTemplate.exchange(
@@ -109,6 +108,6 @@ public class ProxyService {
         } catch (Exception e) {
             System.err.println("⚠️ Error sincronizando eventos: " + e.getMessage());
         }
-        return List.of();
+        return List.of(); // Devuelve lista inmutable vacía si falla
     }
 }

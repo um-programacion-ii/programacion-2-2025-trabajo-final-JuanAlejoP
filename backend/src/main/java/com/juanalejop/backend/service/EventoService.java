@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 /**
  * Service Implementation for managing {@link com.juanalejop.backend.domain.Evento}.
@@ -103,23 +104,34 @@ public class EventoService {
     public Optional<EventoDTO> findOne(Long id) {
         LOG.debug("Request to get Evento : {}", id);
 
-        // 3. Obtenemos el evento de la BD local // <--- MODIFICADO
+        // 3. Obtenemos evento local
         Optional<EventoDTO> eventoDTO = eventoRepository.findById(id).map(eventoMapper::toDto);
 
-        // 4. Si el evento existe, consultamos al Proxy para enriquecerlo con los asientos // <--- AGREGADO
+        // 4. Consultamos al Proxy
         if (eventoDTO.isPresent()) {
             EventoDTO dto = eventoDTO.get();
-            // Usamos idCatedra porque es el ID que conoce el sistema externo (Redis/Kafka)
-            Long idParaConsultar = dto.getIdCatedra();
+            Long idCatedra = dto.getIdCatedra();
 
-            if (idParaConsultar != null) {
-                proxyService.obtenerAsientos(idParaConsultar).ifPresent(infoProxy -> {
-                    // Si el proxy responde, le pegamos los asientos al DTO
+            if (idCatedra != null) {
+                LOG.info("🔍 [DEBUG] Consultando Proxy para asientos del Evento Catedra ID: " + idCatedra); // LOG NUEVO
+
+                proxyService.obtenerAsientos(idCatedra).ifPresent(infoProxy -> {
+                    List<?> asientosDelProxy = infoProxy.getAsientos();
+
+                    if (asientosDelProxy == null) {
+                        LOG.warn("⚠️ [DEBUG] El Proxy devolvió ASIENTOS NULL.");
+                    } else if (asientosDelProxy.isEmpty()) {
+                        LOG.warn("⚠️ [DEBUG] El Proxy devolvió LISTA VACÍA de asientos.");
+                    } else {
+                        LOG.info("✅ [DEBUG] El Proxy devolvió " + asientosDelProxy.size() + " asientos con estado.");
+                    }
+
                     dto.setAsientos(infoProxy.getAsientos());
                 });
+            } else {
+                LOG.error("❌ [DEBUG] El evento no tiene ID Catedra. No se puede consultar al Proxy.");
             }
         }
-
         return eventoDTO;
     }
 
