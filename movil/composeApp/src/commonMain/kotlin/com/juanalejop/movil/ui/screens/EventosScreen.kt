@@ -16,44 +16,21 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.juanalejop.movil.data.model.Evento
-import com.juanalejop.movil.data.network.AuthRepository
-import com.juanalejop.movil.data.network.EventosRepository
-import kotlinx.coroutines.launch
+import com.juanalejop.movil.ui.viewmodel.EventosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventosScreen(
     onEventoClick: (Long) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    viewModel: EventosViewModel = viewModel()
 ) {
-    var eventos by remember { mutableStateOf<List<Evento>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    val scope = rememberCoroutineScope()
-    val repository = remember { EventosRepository() }
-    val authRepository = remember { AuthRepository() }
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            isLoading = true
-            repository.getEventos()
-                .onSuccess { lista ->
-                    eventos = lista
-                    isLoading = false
-                }
-                .onFailure { error ->
-                    if (error.message?.contains("401") == true) {
-                        authRepository.logout()
-                        onLogout()
-                    } else {
-                        errorMessage = "Error: ${error.message}"
-                    }
-                    isLoading = false
-                }
-        }
+        viewModel.loadEventos()
     }
 
     Scaffold(
@@ -62,8 +39,7 @@ fun EventosScreen(
                 title = { Text("Eventos Disponibles") },
                 actions = {
                     IconButton(onClick = {
-                        authRepository.logout()
-                        onLogout()
+                        viewModel.logout(onLogout)
                     }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
@@ -76,35 +52,34 @@ fun EventosScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             when {
-                isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                viewModel.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
 
-                errorMessage != null -> {
+                viewModel.errorMessage != null -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = errorMessage!!,
+                            text = viewModel.errorMessage!!,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(16.dp)
                         )
                         Button(onClick = {
-                            authRepository.logout()
-                            onLogout()
+                            viewModel.logout(onLogout)
                         }) {
                             Text("Volver al Login")
                         }
                     }
                 }
 
-                eventos.isEmpty() -> Text("No se encontraron eventos.", modifier = Modifier.align(Alignment.Center))
+                viewModel.eventos.isEmpty() -> Text("No se encontraron eventos.", modifier = Modifier.align(Alignment.Center))
 
                 else -> {
                     LazyColumn(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(eventos) { evento ->
+                        items(viewModel.eventos) { evento ->
                             EventoCard(evento, onClick = { onEventoClick(evento.id) })
                         }
                     }

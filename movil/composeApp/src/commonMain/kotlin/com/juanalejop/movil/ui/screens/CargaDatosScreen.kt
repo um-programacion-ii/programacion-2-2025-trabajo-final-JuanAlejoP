@@ -9,20 +9,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.juanalejop.movil.data.model.Asiento
+import com.juanalejop.movil.ui.viewmodel.CargaDatosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CargaDatosScreen(
     asientos: List<Asiento>,
     onBack: () -> Unit,
-    onConfirmarCompra: (Map<Asiento, String>) -> Unit
+    onConfirmarCompra: (Map<Asiento, String>) -> Unit,
+    viewModel: CargaDatosViewModel = viewModel()
 ) {
-    val nombresState = remember { mutableStateMapOf<Int, String>() }
-
-    val isFormValid = asientos.indices.all { i ->
-        !nombresState[i].isNullOrBlank()
+    LaunchedEffect(Unit) {
+        viewModel.resetForm()
     }
+    val nombresState = viewModel.nombresState
+    val isFormValid = viewModel.isFormValid(asientos.size)
 
     Scaffold(
         topBar = {
@@ -38,9 +41,7 @@ fun CargaDatosScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    val resultado = asientos.mapIndexed { index, asiento ->
-                        asiento to (nombresState[index] ?: "")
-                    }.toMap()
+                    val resultado = viewModel.prepararDatosCompra(asientos)
                     onConfirmarCompra(resultado)
                 },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -84,7 +85,7 @@ fun CargaDatosScreen(
                         OutlinedTextField(
                             value = nombresState[index] ?: "",
                             onValueChange = { nuevoNombre ->
-                                nombresState[index] = nuevoNombre
+                                viewModel.updateNombre(index, nuevoNombre)
                             },
                             label = { Text("Nombre y Apellido") },
                             modifier = Modifier.fillMaxWidth(),

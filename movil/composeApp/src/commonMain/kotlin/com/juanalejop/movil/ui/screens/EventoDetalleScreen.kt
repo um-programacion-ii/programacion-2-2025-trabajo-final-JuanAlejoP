@@ -19,35 +19,24 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import com.juanalejop.movil.data.model.Evento
-import com.juanalejop.movil.data.network.EventosRepository
-import kotlinx.coroutines.launch
+import com.juanalejop.movil.ui.viewmodel.EventoDetalleViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventoDetalleScreen(
     eventoId: Long,
     onBack: () -> Unit,
-    onComprarClick: (String) -> Unit
+    onComprarClick: (String) -> Unit,
+    viewModel: EventoDetalleViewModel = viewModel()
 ) {
-    var evento by remember { mutableStateOf<Evento?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    val scope = rememberCoroutineScope()
-    val repository = remember { EventosRepository() }
-
     LaunchedEffect(eventoId) {
-        scope.launch {
-            isLoading = true
-            repository.getEvento(eventoId).onSuccess {
-                evento = it
-                isLoading = false
-            }.onFailure {
-                isLoading = false
-            }
-        }
+        viewModel.cargarDetalle(eventoId)
     }
+
+    val evento = viewModel.evento
+    val isLoading = viewModel.isLoading
 
     Scaffold(
         topBar = {
@@ -63,7 +52,7 @@ fun EventoDetalleScreen(
         bottomBar = {
             if (evento != null) {
                 Button(
-                    onClick = { onComprarClick(evento!!.titulo) },
+                    onClick = { onComprarClick(evento.titulo) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -78,7 +67,7 @@ fun EventoDetalleScreen(
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (evento != null) {
-                val item = evento!!
+                val item = evento
 
                 Column(
                     modifier = Modifier
