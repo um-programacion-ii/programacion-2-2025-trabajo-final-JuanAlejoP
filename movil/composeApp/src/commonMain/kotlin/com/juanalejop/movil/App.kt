@@ -12,7 +12,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.juanalejop.movil.ui.theme.AppTheme
 
 enum class CurrentScreen {
-    LOGIN, HOME, DETALLE, MAPA, CARGA_DATOS, COMPRA_EXITOSA
+    LOGIN, REGISTER, HOME, DETALLE, MAPA, CARGA_DATOS, COMPRA_EXITOSA
 }
 
 @Composable
@@ -30,7 +30,17 @@ fun App() {
 
         when (currentScreen) {
             CurrentScreen.LOGIN -> {
-                LoginScreen(onLoginSuccess = { currentScreen = CurrentScreen.HOME })
+                LoginScreen(onLoginSuccess = { currentScreen = CurrentScreen.HOME },
+                    onNavigateToRegister = { currentScreen = CurrentScreen.REGISTER }
+                )
+            }
+            CurrentScreen.REGISTER -> {
+                RegisterScreen(
+                    onBack = { currentScreen = CurrentScreen.LOGIN },
+                    onRegisterSuccess = {
+                        currentScreen = CurrentScreen.LOGIN
+                    }
+                )
             }
             CurrentScreen.HOME -> {
                 EventosScreen(

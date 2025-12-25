@@ -32,6 +32,7 @@ import com.juanalejop.movil.ui.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit,
     viewModel: LoginViewModel = viewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -137,6 +138,16 @@ fun LoginScreen(
                         modifier = Modifier.padding(8.dp)
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = onNavigateToRegister) {
+                Text(
+                    text = "¿No tienes cuenta? Regístrate aquí",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
