@@ -3,6 +3,7 @@ package com.juanalejop.movil.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,44 +27,59 @@ fun AsientoItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // Definimos el color (tu lógica actual)
-    val backgroundColor = when {
-        asiento.estado == "Vendido" -> Color.Red.copy(alpha = 0.5f)
-        asiento.estado == "Bloqueado" -> Color.Gray.copy(alpha = 0.5f)
-        isSelected -> MaterialTheme.colorScheme.primary
-        else -> Color.Green.copy(alpha = 0.3f)
+    val isDark = isSystemInDarkTheme()
+    val isClickable = asiento.estado == "Libre"
+
+    val backgroundColor = if (isDark) {
+        when {
+            asiento.estado == "Vendido" -> Color(0xFFB71C1C)
+            asiento.estado == "Bloqueado" -> Color.DarkGray
+            isSelected -> MaterialTheme.colorScheme.primary
+            else -> Color(0xFF1B5E20)
+        }
+    } else {
+        when {
+            asiento.estado == "Vendido" -> Color.Red.copy(alpha = 0.5f)
+            asiento.estado == "Bloqueado" -> Color.Gray.copy(alpha = 0.5f)
+            isSelected -> MaterialTheme.colorScheme.primary
+            else -> Color.Green.copy(alpha = 0.3f)
+        }
     }
 
-    val isClickable = asiento.estado == "Libre"
+    val contentColor = if (isDark) {
+        if (isSelected) Color.Black else Color.White
+    } else {
+        Color.Black
+    }
+
+    val contentAlpha = if (isDark && !isSelected) 0.9f else 0.8f
+    val borderColor = if (isDark) Color.Gray else Color.Gray
 
     Box(
         modifier = Modifier
-            .size(40.dp) // Tamaño cuadrado fijo
+            .size(40.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor)
-            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
             .clickable(enabled = isClickable) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        // Usamos una Columna para apilar Fila y Columna
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Texto de Fila (Arriba, un poco más pequeño)
             Text(
                 text = "F${asiento.fila}",
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black.copy(alpha = 0.7f),
+                color = contentColor.copy(alpha = contentAlpha),
                 lineHeight = 10.sp
             )
-            // Texto de Columna (Abajo, más destacado)
             Text(
                 text = "C${asiento.columna}",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = Color.Black,
+                color = contentColor,
                 lineHeight = 11.sp
             )
         }

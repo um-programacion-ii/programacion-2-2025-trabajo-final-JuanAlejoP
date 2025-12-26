@@ -9,6 +9,8 @@ import java.util.HashSet;
 import java.util.Set;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import jakarta.persistence.Column;
+import jakarta.persistence.Lob;
 
 /**
  * A Evento.
@@ -47,7 +49,7 @@ public class Evento implements Serializable {
     @Column(name = "direccion")
     private String direccion;
 
-    @Column(name = "imagen_url")
+    @Column(name = "imagen_url", length = 2048)
     private String imagenUrl;
 
     @NotNull
@@ -59,6 +61,28 @@ public class Evento implements Serializable {
 
     @Column(name = "column_asientos")
     private Integer columnAsientos;
+
+    @Column(name = "tipo_nombre")
+    private String tipoNombre;
+
+    @Column(name = "tipo_descripcion")
+    private String tipoDescripcion;
+
+    @Lob
+    @Column(name = "integrantes_json", columnDefinition = "CLOB") // CLOB para H2, TEXT para MySQL
+    private String integrantesJson;
+
+    public String getTipoNombre() { return tipoNombre; }
+
+    public void setTipoNombre(String tipoNombre) { this.tipoNombre = tipoNombre; }
+
+    public String getTipoDescripcion() { return tipoDescripcion; }
+
+    public void setTipoDescripcion(String tipoDescripcion) { this.tipoDescripcion = tipoDescripcion; }
+
+    public String getIntegrantesJson() { return integrantesJson; }
+
+    public void setIntegrantesJson(String integrantesJson) { this.integrantesJson = integrantesJson; }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "evento")
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

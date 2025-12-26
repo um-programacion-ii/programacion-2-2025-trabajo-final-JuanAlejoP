@@ -5,23 +5,19 @@ import java.util.List;
 public class SolicitudVentaDTO {
     private Long eventoId;
 
-    // --- AGREGAMOS LOS CAMPOS QUE FALTABAN ---
     private Double precioVenta;
     private String fecha;
-    // -----------------------------------------
 
     private List<AsientoPersonaDTO> asientos;
 
     public Long getEventoId() { return eventoId; }
     public void setEventoId(Long eventoId) { this.eventoId = eventoId; }
 
-    // --- GETTERS Y SETTERS NUEVOS ---
     public Double getPrecioVenta() { return precioVenta; }
     public void setPrecioVenta(Double precioVenta) { this.precioVenta = precioVenta; }
 
     public String getFecha() { return fecha; }
     public void setFecha(String fecha) { this.fecha = fecha; }
-    // --------------------------------
 
     public List<AsientoPersonaDTO> getAsientos() { return asientos; }
     public void setAsientos(List<AsientoPersonaDTO> asientos) { this.asientos = asientos; }

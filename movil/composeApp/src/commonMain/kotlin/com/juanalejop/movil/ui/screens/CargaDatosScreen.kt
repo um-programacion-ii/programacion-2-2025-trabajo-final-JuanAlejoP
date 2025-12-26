@@ -2,7 +2,6 @@ package com.juanalejop.movil.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -10,22 +9,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.juanalejop.movil.data.model.Asiento
+import com.juanalejop.movil.ui.viewmodel.CargaDatosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CargaDatosScreen(
     asientos: List<Asiento>,
     onBack: () -> Unit,
-    onConfirmarCompra: (Map<Asiento, String>) -> Unit // Devuelve Mapa: Asiento -> Nombre Persona
+    onConfirmarCompra: (Map<Asiento, String>) -> Unit,
+    viewModel: CargaDatosViewModel = viewModel()
 ) {
-    // Estado para guardar los nombres. Clave: Índice del asiento, Valor: Nombre
-    val nombresState = remember { mutableStateMapOf<Int, String>() }
-
-    // Validar si todos los campos tienen texto
-    val isFormValid = asientos.indices.all { i ->
-        !nombresState[i].isNullOrBlank()
+    LaunchedEffect(Unit) {
+        viewModel.resetForm()
     }
+    val nombresState = viewModel.nombresState
+    val isFormValid = viewModel.isFormValid(asientos.size)
 
     Scaffold(
         topBar = {
@@ -41,14 +41,11 @@ fun CargaDatosScreen(
         bottomBar = {
             Button(
                 onClick = {
-                    // Preparamos el mapa final para enviar
-                    val resultado = asientos.mapIndexed { index, asiento ->
-                        asiento to (nombresState[index] ?: "")
-                    }.toMap()
+                    val resultado = viewModel.prepararDatosCompra(asientos)
                     onConfirmarCompra(resultado)
                 },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                enabled = isFormValid // Solo habilita si llenó todo
+                enabled = isFormValid
             ) {
                 Text("Confirmar Compra")
             }
@@ -62,24 +59,33 @@ fun CargaDatosScreen(
             item {
                 Text(
                     "Por favor ingresa el nombre completo para cada entrada:",
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             }
 
             items(asientos.size) { index ->
                 val asiento = asientos[index]
-                Card(elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)) {
+
+                Card(
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = "Asiento: Fila ${asiento.fila} - Columna ${asiento.columna}",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+
                         OutlinedTextField(
                             value = nombresState[index] ?: "",
                             onValueChange = { nuevoNombre ->
-                                nombresState[index] = nuevoNombre
+                                viewModel.updateNombre(index, nuevoNombre)
                             },
                             label = { Text("Nombre y Apellido") },
                             modifier = Modifier.fillMaxWidth(),

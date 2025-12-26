@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+  <changeSet id="20251217000000-1" author="juanalejop">
+    <addColumn tableName="evento">
+      <column name="tipo_nombre" type="varchar(255)"/>
+      <column name="tipo_descripcion" type="varchar(255)"/>
+      <column name="integrantes_json" type="${clobType}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

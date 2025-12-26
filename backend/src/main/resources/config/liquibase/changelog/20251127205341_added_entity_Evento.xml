@@ -32,7 +32,7 @@
             <column name="direccion" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
-            <column name="imagen_url" type="varchar(255)">
+            <column name="imagen_url" type="varchar(2048)">
                 <constraints nullable="true" />
             </column>
             <column name="precio" type="double">

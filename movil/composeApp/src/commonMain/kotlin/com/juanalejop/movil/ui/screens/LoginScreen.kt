@@ -1,87 +1,171 @@
 package com.juanalejop.movil.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ConfirmationNumber
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.juanalejop.movil.data.network.AuthRepository
-import kotlinx.coroutines.launch
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.juanalejop.movil.ui.viewmodel.LoginViewModel
 
 @Composable
-fun LoginScreen(onLoginSuccess: () -> Unit) {
-    // Estado de los campos de texto
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    onNavigateToRegister: () -> Unit,
+    viewModel: LoginViewModel = viewModel()
+) {
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
+    val isDark = isSystemInDarkTheme()
+    val gradientTop = if (isDark) com.juanalejop.movil.ui.theme.DeepOcean else com.juanalejop.movil.ui.theme.SoftTeal
+    val gradientBottom = MaterialTheme.colorScheme.background
 
-    // Estado de carga y error
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-
-    // Coroutine scope para llamar al repositorio (que es suspend)
-    val scope = rememberCoroutineScope()
-    val repository = remember { AuthRepository() }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(gradientTop, gradientBottom)
+                )
+            )
     ) {
-        Text(text = "Bienvenido", style = MaterialTheme.typography.headlineMedium)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(100.dp),
+                shadowElevation = 8.dp
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ConfirmationNumber,
+                    contentDescription = null,
+                    tint = com.juanalejop.movil.ui.theme.DeepOcean,
+                    modifier = Modifier.padding(24.dp).fillMaxSize()
+                )
+            }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Usuario") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+            Text(
+                text = "TiqueTo",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Del ticket al evento",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontStyle = FontStyle.Italic
+            )
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(48.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Card(
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = viewModel.username,
+                        onValueChange = { viewModel.username = it },
+                        label = { Text("Usuario") },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = viewModel.password,
+                        onValueChange = { viewModel.password = it },
+                        label = { Text("Contraseña") },
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        trailingIcon = {
+                            val image = if (viewModel.passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            IconButton(onClick = { viewModel.togglePasswordVisibility() }) {
+                                Icon(imageVector = image, contentDescription = null)
+                            }
+                        },
+                        visualTransformation = if (viewModel.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            if (viewModel.errorMessage != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                    Text(
+                        text = viewModel.errorMessage!!,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextButton(onClick = onNavigateToRegister) {
+                Text(
+                    text = "¿No tienes cuenta? Regístrate aquí",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             Button(
                 onClick = {
-                    scope.launch {
-                        isLoading = true
-                        errorMessage = null
-                        val result = repository.login(username, password)
-                        isLoading = false
-
-                        result.onSuccess {
-                            onLoginSuccess() // Navegar
-                        }.onFailure {
-                            errorMessage = "Error: ${it.message ?: "Credenciales inválidas"}"
-                        }
-                    }
+                    viewModel.onLoginClick(onSuccess = onLoginSuccess)
                 },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = username.isNotBlank() && password.isNotBlank()
+                enabled = !viewModel.isLoading && viewModel.username.isNotEmpty() && viewModel.password.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Ingresar")
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Ingresar", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                }
             }
-        }
-
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = it, color = MaterialTheme.colorScheme.error)
         }
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/reservas")
@@ -41,11 +40,9 @@ public class ReservaController {
 
     @PostMapping("/bloquear")
     public ResponseEntity<?> bloquearAsientos(@RequestBody SolicitudBloqueoDTO solicitud) {
-        // TRADUCCIÓN DE ID (Local -> Cátedra)
         Evento eventoLocal = eventoRepository.findById(solicitud.getEventoId()).orElse(null);
 
         if (eventoLocal != null && eventoLocal.getIdCatedra() != null) {
-            System.out.println("🔄 Traducción Bloqueo: ID Local " + solicitud.getEventoId() + " -> ID Cátedra " + eventoLocal.getIdCatedra());
             solicitud.setEventoId(eventoLocal.getIdCatedra());
         }
 
@@ -58,9 +55,6 @@ public class ReservaController {
         }
     }
 
-    // Agregá este campo en la clase si no tenés un logger, o usá System.out
-    private final ObjectMapper objectMapper = new ObjectMapper(); // Para imprimir el JSON
-
     @PostMapping("/vender")
     public ResponseEntity<?> realizarVenta(@RequestBody SolicitudVentaDTO solicitud) {
 
@@ -71,17 +65,14 @@ public class ReservaController {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Evento no encontrado localmente"));
         }
 
-        // A. Traducir ID
         if (eventoLocal.getIdCatedra() != null) {
             solicitud.setEventoId(eventoLocal.getIdCatedra());
         }
 
-        // B. Inyectar PRECIO
         if (solicitud.getPrecioVenta() == null || solicitud.getPrecioVenta() == 0.0) {
             solicitud.setPrecioVenta(eventoLocal.getPrecio());
         }
 
-        // C. Inyectar FECHA (¡CAMBIO CLAVE AQUÍ!) 🛠️
         if (solicitud.getFecha() == null) {
             String fechaEstricta = java.time.Instant.now()
                 .truncatedTo(java.time.temporal.ChronoUnit.MILLIS)
@@ -89,28 +80,15 @@ public class ReservaController {
             solicitud.setFecha(fechaEstricta);
         }
 
-        // 🔍 LOG DE DEBUG: Imprimimos lo que vamos a mandar
-        try {
-            String jsonDebug = objectMapper.writeValueAsString(solicitud);
-            System.out.println("📦 JSON ENVIADO A VENTA: " + jsonDebug);
-        } catch (Exception e) {
-            System.out.println("📦 No se pudo imprimir el JSON de debug");
-        }
-
-        // 3. Delegamos al Proxy
         boolean exitoCatedra = proxyService.realizarVenta(solicitud);
 
         if (exitoCatedra) {
             try {
-                // 4. Restaurar ID Local (para guardar en nuestra BD)
                 solicitud.setEventoId(idEventoLocal);
-
-                // 5. Guardar venta localmente
                 guardarVentaLocal(solicitud, eventoLocal);
 
                 return ResponseEntity.ok().body(Map.of("mensaje", "Venta exitosa y registrada"));
             } catch (Exception e) {
-                System.err.println("CRITICAL: Venta confirmada en Cátedra pero falló guardado local: " + e.getMessage());
                 return ResponseEntity.ok().body(Map.of("mensaje", "Venta confirmada (con advertencia local)"));
             }
         } else {
@@ -130,8 +108,6 @@ public class ReservaController {
         }
 
         venta.setEstado("CONFIRMADA");
-        // Si tu VentaDTO tiene campo para ID de evento, descomentar:
-        // venta.setEventoId(eventoEntity.getId());
 
         VentaDTO ventaGuardada = ventaService.save(venta);
 

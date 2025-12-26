@@ -27,7 +27,6 @@ class EventosRepository {
         return try {
             val token = TokenManager.jwt ?: throw Exception("No hay sesión activa")
 
-            // Llamamos a /api/eventos/{id}
             val evento: Evento = client.get("$baseUrl/eventos/$id") {
                 header(HttpHeaders.Authorization, "Bearer $token")
             }.body()

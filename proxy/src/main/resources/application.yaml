@@ -23,4 +23,4 @@ spring:
 
 proxy:
   api-key: "backend-proxy-waguri"
-  catedra-token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqdWFuYWxlam9wIiwiZXhwIjoxNzY4Mzk2OTUxLCJhdXRoIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzY1ODA0OTUxfQ.-dovL6p8iF8f90QGsm9WGh0o3rZUkbp0Yt4oQuvjCcZBfk97VVPcD4AL163AMP5-YFxL3V4YWQumWlyx9770Vg"
+  catedra-token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqdWFuYWxlam9wIiwiZXhwIjoxNzY5Mjc2MDgyLCJhdXRoIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzY2Njg0MDgyfQ.hhp3EWWhtw9ei4pCM38LkoOIJKa1B62cvMJtHzp_4VOrplRlcGRhXVt2i6-9-E__uYFE3zmey7JtjWDIG_9UYQ"

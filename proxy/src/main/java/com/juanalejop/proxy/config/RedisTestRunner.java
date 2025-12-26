@@ -2,6 +2,8 @@ package com.juanalejop.proxy.config;
 
 import com.juanalejop.proxy.dto.EventoAsientosDto;
 import com.juanalejop.proxy.service.RedisService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -10,6 +12,8 @@ import java.util.Optional;
 @Component
 public class RedisTestRunner implements CommandLineRunner {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RedisTestRunner.class);
+
     private final RedisService redisService;
 
     public RedisTestRunner(RedisService redisService) {
@@ -17,29 +21,20 @@ public class RedisTestRunner implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        System.out.println("=================================================");
-        System.out.println("🧪 INICIANDO PRUEBA DE REDIS (Issue 2.1)");
+    public void run(String... args) {
+        long eventoId = 1L;
+        LOG.debug("Verificando disponibilidad de datos en Redis para evento ID: {}", eventoId);
 
-        long eventoIdPrueba = 1L; // El profesor dijo que el evento 1 tiene datos
-        System.out.println("🔍 Buscando asientos para evento ID: " + eventoIdPrueba);
+        try {
+            Optional<EventoAsientosDto> resultado = redisService.getAsientos(eventoId);
 
-        Optional<EventoAsientosDto> resultado = redisService.getAsientos(eventoIdPrueba);
-
-        if (resultado.isPresent()) {
-            EventoAsientosDto datos = resultado.get();
-            System.out.println("✅ ¡ÉXITO! Datos recibidos de Redis:");
-            System.out.println("   Encabezado: " + datos.toString());
-
-            if (datos.getAsientos() != null) {
-                datos.getAsientos().forEach(asiento ->
-                        System.out.println("   -> " + asiento.toString())
-                );
+            if (resultado.isPresent()) {
+                LOG.info("Redis operativo. Datos encontrados para evento {}: {} asientos.", eventoId, resultado.get().getAsientos().size());
+            } else {
+                LOG.info("Redis operativo. Sin datos cacheados para evento {} (caché vacía).", eventoId);
             }
-        } else {
-            System.out.println("⚠️ No se encontraron datos para el evento " + eventoIdPrueba);
-            System.out.println("   (Esto es normal si el servidor de cátedra reinició y nadie compró nada aún)");
+        } catch (Exception e) {
+            LOG.warn("No se pudo contactar con Redis al inicio: {}", e.getMessage());
         }
-        System.out.println("=================================================");
     }
 }

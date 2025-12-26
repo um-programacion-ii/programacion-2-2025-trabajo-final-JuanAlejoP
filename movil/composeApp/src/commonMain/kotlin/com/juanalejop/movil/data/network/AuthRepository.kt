@@ -2,11 +2,10 @@ package com.juanalejop.movil.data.network
 
 import com.juanalejop.movil.data.model.LoginRequest
 import com.juanalejop.movil.data.model.LoginResponse
+import com.juanalejop.movil.data.model.RegisterRequest
 import io.ktor.client.call.body
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
+import io.ktor.client.request.*
+import io.ktor.http.*
 
 object TokenManager {
     var jwt: String? = null
@@ -16,7 +15,6 @@ object TokenManager {
         jwt = token
     }
 
-    // 🆕 NUEVO MÉTODO
     fun clearToken() {
         jwt = null
     }
@@ -41,7 +39,24 @@ class AuthRepository {
         }
     }
 
-    // 🆕 NUEVO MÉTODO
+    suspend fun register(request: RegisterRequest): Result<Unit> {
+        return try {
+            val response = client.post("$baseUrl/register") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
+
+            if (response.status == HttpStatusCode.Created) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error registro: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
     fun logout() {
         TokenManager.clearToken()
     }

@@ -1,20 +1,16 @@
 package com.juanalejop.proxy.dto;
 
-import com.fasterxml.jackson.annotation.JsonAlias;  // <--- IMPORTAR
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty; // <--- IMPORTAR
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AsientoDto {
     private int fila;
 
-    // --- CAMBIO CLAVE AQUÍ ---
-    // @JsonProperty: Cuando conviertas a JSON para enviar, usará "columna".
-    // @JsonAlias: Si recibe "col" o "c" de la Cátedra, lo entenderá como esta variable.
     @JsonProperty("columna")
     @JsonAlias({"col", "c", "Col"})
     private int columna;
-    // -------------------------
 
     private String estado;
     private String expira;
