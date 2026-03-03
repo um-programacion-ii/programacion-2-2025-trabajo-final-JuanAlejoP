@@ -1,0 +1,26 @@
+server:
+  port: 8081 # Usamos 8081 para que no choque con el Backend (que usará 8080)
+
+spring:
+  application:
+    name: proxy
+  
+  # Configuración de Redis (Cátedra)
+  data:
+    redis:
+      host: 192.168.194.250
+      port: 6379
+      timeout: 2000ms
+
+  # Configuración de Kafka (Cátedra)
+  kafka:
+    bootstrap-servers: 192.168.194.250:9092
+    consumer:
+      group-id: juan-patino-group 
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+proxy:
+  api-key: "backend-proxy-waguri"
+  catedra-token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqdWFuYWxlam9wIiwiZXhwIjoxNzY5Mjc2MDgyLCJhdXRoIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzY2Njg0MDgyfQ.hhp3EWWhtw9ei4pCM38LkoOIJKa1B62cvMJtHzp_4VOrplRlcGRhXVt2i6-9-E__uYFE3zmey7JtjWDIG_9UYQ"

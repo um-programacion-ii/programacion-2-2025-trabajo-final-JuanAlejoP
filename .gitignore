@@ -1,0 +1,31 @@
+### OS ###
+# Archivos de sistema operativo (Linux, macOS)
+.DS_Store
+*~
+.swp
+
+### IDE - IntelliJ / Android Studio ###
+# Carpetas de configuración del IDE
+.idea/
+.run/
+
+# Archivos de módulo (aunque los subproyectos los tendrán)
+*.iml
+*.ipr
+*.iws
+
+# Carpeta de salida de IntelliJ
+out/
+
+### Gradle / KMP ###
+# Esto es vital para el Issue 1.2
+.gradle/
+build/
+.kotlin/
+
+### Archivos temporales y de log ###
+*.log
+*.tmp
+
+# JWT (Archivo txt para guardar tokens)
+jwt
